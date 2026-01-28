@@ -1,7 +1,7 @@
 {
   "domain": "ha_finance",
   "name": "Finance Record",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "documentation": "https://github.com/woowtech-ai-coder/ha_finance",
   "codeowners": ["@woowtech-ai-coder"],
   "requirements": [],
