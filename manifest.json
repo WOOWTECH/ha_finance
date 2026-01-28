@@ -1,0 +1,11 @@
+{
+  "domain": "ha_finance",
+  "name": "Finance Record",
+  "version": "1.0.0",
+  "documentation": "https://github.com/woowtech-ai-coder/ha_finance",
+  "codeowners": ["@woowtech-ai-coder"],
+  "requirements": [],
+  "dependencies": [],
+  "iot_class": "local_push",
+  "config_flow": true
+}

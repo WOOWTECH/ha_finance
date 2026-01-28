@@ -1,0 +1,154 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "新增財務帳戶",
+        "description": "建立新的財務帳戶以追蹤您的財務狀況。",
+        "data": {
+          "account_name": "帳戶名稱",
+          "account_id": "帳戶 ID（選填）",
+          "initial_balance": "初始餘額"
+        }
+      }
+    },
+    "error": {
+      "invalid_day_weekly": "每週頻率的執行日必須為 1-7",
+      "invalid_day_monthly": "每月頻率的執行日必須為 1-28",
+      "invalid_day_yearly": "每年頻率的執行日必須為 1-28"
+    },
+    "abort": {
+      "already_configured": "此帳戶已設定"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "帳戶設定",
+        "description": "管理您的財務帳戶",
+        "data": {
+          "action": "選擇操作"
+        }
+      },
+      "add_recurring": {
+        "title": "新增定期項目",
+        "description": "新增一個定期收入或支出項目。",
+        "data": {
+          "plan_title": "項目名稱",
+          "plan_amount": "金額（正數=收入，負數=支出）",
+          "plan_frequency": "頻率",
+          "plan_day": "執行日",
+          "plan_month": "執行月份（用於每年）",
+          "plan_active": "立即啟用"
+        }
+      },
+      "manage_recurring": {
+        "title": "管理定期項目",
+        "description": "選擇要編輯或刪除的項目。",
+        "data": {
+          "plan": "選擇項目"
+        }
+      },
+      "plan_action": {
+        "title": "項目操作",
+        "description": "您想對這個項目做什麼？",
+        "data": {
+          "action": "選擇操作"
+        }
+      },
+      "edit_plan": {
+        "title": "編輯定期項目",
+        "description": "修改定期項目設定。",
+        "data": {
+          "plan_title": "項目名稱",
+          "plan_amount": "金額",
+          "plan_frequency": "頻率",
+          "plan_day": "執行日",
+          "plan_month": "執行月份（用於每年）"
+        }
+      },
+      "delete_plan": {
+        "title": "刪除定期項目",
+        "description": "確定要刪除項目「{plan_id}」嗎？",
+        "data": {
+          "confirm": "確認刪除"
+        }
+      },
+      "delete_account": {
+        "title": "刪除帳戶",
+        "description": "確定要刪除此帳戶嗎？此操作無法復原。",
+        "data": {
+          "confirm": "確認刪除"
+        }
+      }
+    },
+    "error": {
+      "invalid_day_weekly": "每週頻率的執行日必須為 1-7",
+      "invalid_day_monthly": "每月頻率的執行日必須為 1-28",
+      "invalid_day_yearly": "每年頻率的執行日必須為 1-28"
+    },
+    "abort": {
+      "no_account": "找不到帳戶",
+      "no_plans": "尚未設定任何定期項目",
+      "plan_not_found": "找不到項目"
+    }
+  },
+  "entity": {
+    "number": {
+      "balance": {
+        "name": "餘額"
+      },
+      "quick_amount": {
+        "name": "快速記帳金額"
+      },
+      "plan_amount": {
+        "name": "金額"
+      },
+      "plan_day": {
+        "name": "執行日"
+      }
+    },
+    "text": {
+      "quick_note": {
+        "name": "快速記帳備註"
+      },
+      "plan_title": {
+        "name": "名稱"
+      }
+    },
+    "button": {
+      "confirm_record": {
+        "name": "確認記帳"
+      }
+    },
+    "sensor": {
+      "balance_display": {
+        "name": "餘額"
+      },
+      "last_transaction": {
+        "name": "最後交易金額"
+      },
+      "last_note": {
+        "name": "最後交易備註"
+      },
+      "last_time": {
+        "name": "最後交易時間"
+      },
+      "plan_next_date": {
+        "name": "下次執行日"
+      },
+      "plan_last_executed": {
+        "name": "上次執行時間"
+      }
+    },
+    "select": {
+      "plan_frequency": {
+        "name": "頻率"
+      }
+    },
+    "switch": {
+      "plan_active": {
+        "name": "啟用"
+      }
+    }
+  }
+}

@@ -1,0 +1,154 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add Financial Account",
+        "description": "Create a new financial account to track your finances.",
+        "data": {
+          "account_name": "Account Name",
+          "account_id": "Account ID (optional)",
+          "initial_balance": "Initial Balance"
+        }
+      }
+    },
+    "error": {
+      "invalid_day_weekly": "Day must be 1-7 for weekly frequency",
+      "invalid_day_monthly": "Day must be 1-28 for monthly frequency",
+      "invalid_day_yearly": "Day must be 1-28 for yearly frequency"
+    },
+    "abort": {
+      "already_configured": "Account is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Account Settings",
+        "description": "Manage your financial account",
+        "data": {
+          "action": "Select Action"
+        }
+      },
+      "add_recurring": {
+        "title": "Add Recurring Plan",
+        "description": "Add a new recurring income or expense plan.",
+        "data": {
+          "plan_title": "Plan Name",
+          "plan_amount": "Amount (positive=income, negative=expense)",
+          "plan_frequency": "Frequency",
+          "plan_day": "Execution Day",
+          "plan_month": "Execution Month (for yearly)",
+          "plan_active": "Enable Immediately"
+        }
+      },
+      "manage_recurring": {
+        "title": "Manage Recurring Plans",
+        "description": "Select a plan to edit or delete.",
+        "data": {
+          "plan": "Select Plan"
+        }
+      },
+      "plan_action": {
+        "title": "Plan Action",
+        "description": "What would you like to do with this plan?",
+        "data": {
+          "action": "Select Action"
+        }
+      },
+      "edit_plan": {
+        "title": "Edit Recurring Plan",
+        "description": "Modify the recurring plan settings.",
+        "data": {
+          "plan_title": "Plan Name",
+          "plan_amount": "Amount",
+          "plan_frequency": "Frequency",
+          "plan_day": "Execution Day",
+          "plan_month": "Execution Month (for yearly)"
+        }
+      },
+      "delete_plan": {
+        "title": "Delete Recurring Plan",
+        "description": "Are you sure you want to delete plan '{plan_id}'?",
+        "data": {
+          "confirm": "Confirm Delete"
+        }
+      },
+      "delete_account": {
+        "title": "Delete Account",
+        "description": "Are you sure you want to delete this account? This action cannot be undone.",
+        "data": {
+          "confirm": "Confirm Delete"
+        }
+      }
+    },
+    "error": {
+      "invalid_day_weekly": "Day must be 1-7 for weekly frequency",
+      "invalid_day_monthly": "Day must be 1-28 for monthly frequency",
+      "invalid_day_yearly": "Day must be 1-28 for yearly frequency"
+    },
+    "abort": {
+      "no_account": "Account not found",
+      "no_plans": "No recurring plans configured",
+      "plan_not_found": "Plan not found"
+    }
+  },
+  "entity": {
+    "number": {
+      "balance": {
+        "name": "Balance"
+      },
+      "quick_amount": {
+        "name": "Quick Amount"
+      },
+      "plan_amount": {
+        "name": "Amount"
+      },
+      "plan_day": {
+        "name": "Execution Day"
+      }
+    },
+    "text": {
+      "quick_note": {
+        "name": "Quick Note"
+      },
+      "plan_title": {
+        "name": "Title"
+      }
+    },
+    "button": {
+      "confirm_record": {
+        "name": "Confirm Record"
+      }
+    },
+    "sensor": {
+      "balance_display": {
+        "name": "Balance"
+      },
+      "last_transaction": {
+        "name": "Last Transaction"
+      },
+      "last_note": {
+        "name": "Last Note"
+      },
+      "last_time": {
+        "name": "Last Time"
+      },
+      "plan_next_date": {
+        "name": "Next Date"
+      },
+      "plan_last_executed": {
+        "name": "Last Executed"
+      }
+    },
+    "select": {
+      "plan_frequency": {
+        "name": "Frequency"
+      }
+    },
+    "switch": {
+      "plan_active": {
+        "name": "Active"
+      }
+    }
+  }
+}
