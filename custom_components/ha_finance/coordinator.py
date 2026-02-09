@@ -50,9 +50,9 @@ class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(minutes=5),
+            update_interval=None,
+            config_entry=entry,
         )
-        self.entry = entry
         self.store = store
         self._account_id: str = entry.data.get("account_id", "")
         self._unsub_time_change: Callable[[], None] | None = None
@@ -103,7 +103,7 @@ class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
 
         today = dt_util.now().date()
 
-        for plan_id, plan in account.recurring_plans.items():
+        for plan_id, plan in list(account.recurring_plans.items()):
             if not plan.active:
                 continue
 
@@ -264,13 +264,7 @@ class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
                 note=NOTE_BALANCE_ADJUSTMENT,
                 transaction_type=TRANSACTION_ADJUSTMENT,
             )
-            account.transactions.append(transaction)
-
-            # Trim transactions if needed
-            if len(account.transactions) > DEFAULT_MAX_TRANSACTIONS:
-                account.transactions = account.transactions[-DEFAULT_MAX_TRANSACTIONS:]
-
-            account.balance = new_balance
+            account.add_transaction(transaction, max_transactions=DEFAULT_MAX_TRANSACTIONS)
             await self.store.async_save()
 
             # Fire event
