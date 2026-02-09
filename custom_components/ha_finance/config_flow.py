@@ -1,14 +1,14 @@
 """Config flow for Ha Finance Record integration."""
 from __future__ import annotations
 
+import hashlib
 import re
 from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
+from homeassistant.config_entries import ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv
 
 from .const import (
@@ -39,6 +39,8 @@ def generate_account_id(name: str) -> str:
     # Convert to lowercase and replace spaces/special chars with underscore
     account_id = re.sub(r"[^a-zA-Z0-9_]", "_", name.lower())
     account_id = re.sub(r"_+", "_", account_id).strip("_")
+    if not account_id:
+        account_id = hashlib.md5(name.encode()).hexdigest()[:8]
     return account_id or "account"
 
 
@@ -46,6 +48,8 @@ def generate_plan_id(title: str) -> str:
     """Generate a valid plan ID from the title."""
     plan_id = re.sub(r"[^a-zA-Z0-9_]", "_", title.lower())
     plan_id = re.sub(r"_+", "_", plan_id).strip("_")
+    if not plan_id:
+        plan_id = hashlib.md5(title.encode()).hexdigest()[:8]
     return plan_id or "plan"
 
 
@@ -56,7 +60,7 @@ class HaFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] = {}
 
@@ -92,6 +96,29 @@ class HaFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    async def async_step_ws_panel(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Handle account creation from WebSocket panel."""
+        if user_input is None:
+            return self.async_abort(reason="invalid_input")
+
+        account_name = user_input.get("name", "")
+        account_id = user_input.get("account_id") or generate_account_id(account_name)
+        initial_balance = user_input.get("initial_balance", 0.0)
+
+        await self.async_set_unique_id(account_id)
+        self._abort_if_unique_id_configured()
+
+        return self.async_create_entry(
+            title=account_name,
+            data={
+                CONF_ACCOUNT_ID: account_id,
+                CONF_ACCOUNT_NAME: account_name,
+                CONF_INITIAL_BALANCE: initial_balance,
+            },
+        )
+
     @staticmethod
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> HaFinanceOptionsFlow:
@@ -109,7 +136,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial options step."""
         if user_input is not None:
             action = user_input.get("action")
@@ -137,7 +164,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_add_recurring(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle adding a recurring plan."""
         errors: dict[str, str] = {}
 
@@ -210,7 +237,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_manage_recurring(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle managing recurring plans."""
         coordinator = self.hass.data[DOMAIN].get(self.config_entry.entry_id)
         if not coordinator or not coordinator.account:
@@ -242,7 +269,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_plan_action(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle plan action selection."""
         if user_input is not None:
             action = user_input.get("action")
@@ -267,7 +294,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_edit_plan(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle editing a recurring plan."""
         errors: dict[str, str] = {}
         coordinator = self.hass.data[DOMAIN].get(self.config_entry.entry_id)
@@ -332,7 +359,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_delete_plan(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle deleting a recurring plan."""
         coordinator = self.hass.data[DOMAIN].get(self.config_entry.entry_id)
         if not coordinator:
@@ -355,7 +382,7 @@ class HaFinanceOptionsFlow(OptionsFlow):
 
     async def async_step_delete_account(
         self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Handle account deletion confirmation."""
         if user_input is not None:
             if user_input.get("confirm"):
