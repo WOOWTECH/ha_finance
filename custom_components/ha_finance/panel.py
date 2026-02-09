@@ -9,8 +9,12 @@ import voluptuous as vol
 from homeassistant.components import frontend, websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.data_entry_flow import FlowResultType
 
 from .const import (
+    CONF_ACCOUNT_ID,
+    CONF_ACCOUNT_NAME,
+    CONF_INITIAL_BALANCE,
     DOMAIN,
     FREQUENCY_DAILY,
     FREQUENCY_MONTHLY,
@@ -19,10 +23,10 @@ from .const import (
     FREQUENCY_YEARLY,
     TRANSACTION_MANUAL,
 )
+from .coordinator import FinanceCoordinator
 from .models import RecurringPlan, Transaction
 
 if TYPE_CHECKING:
-    from .coordinator import FinanceCoordinator
     from .store import FinanceStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -114,10 +118,11 @@ async def _get_coordinator_for_account(
     """Get coordinator for a specific account."""
     if DOMAIN not in hass.data:
         return None
-    for coordinator in hass.data[DOMAIN].values():
-        if hasattr(coordinator, "account") and coordinator.account:
-            if coordinator.account.id == account_id:
-                return coordinator
+    for value in hass.data[DOMAIN].values():
+        if not isinstance(value, FinanceCoordinator):
+            continue
+        if value.account and value.account.id == account_id:
+            return value
     return None
 
 
@@ -511,49 +516,70 @@ async def ws_add_account(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Add a new account."""
-    import re
-    import uuid
-
+    """Add a new account via ConfigEntry flow."""
     name = msg["name"].strip()
     if not name:
         connection.send_error(msg["id"], "invalid_name", "Account name cannot be empty")
         return
 
-    # Generate account ID from name
-    account_id = re.sub(r"[^a-zA-Z0-9_]", "_", name.lower())
-    account_id = f"{account_id}_{uuid.uuid4().hex[:6]}"
+    balance = msg["initial_balance"]
 
-    store = _get_store(hass)
-    await store.async_load()
+    # Route through ConfigEntry flow so account gets a proper entry
+    try:
+        result = await hass.config_entries.flow.async_init(
+            DOMAIN,
+            context={"source": "ws_panel"},
+            data={"name": name, "initial_balance": balance},
+        )
+    except Exception:
+        _LOGGER.exception("Failed to create account via config flow")
+        connection.send_error(msg["id"], "flow_error", "Failed to create account config entry")
+        return
 
-    # Check for duplicate name
-    for existing in store.data.accounts.values():
-        if existing.name.lower() == name.lower():
-            connection.send_error(msg["id"], "duplicate_name", "Account with this name already exists")
-            return
+    if result.get("type") != FlowResultType.CREATE_ENTRY:
+        reason = result.get("reason", "unknown")
+        connection.send_error(
+            msg["id"],
+            "flow_failed",
+            f"Config flow did not create entry: {reason}",
+        )
+        return
 
-    from .models import Account
+    # The flow created a new ConfigEntry. async_setup_entry will have run
+    # and registered the coordinator. Find it from the new entry.
+    entry_id = result.get("result", {}).entry_id if result.get("result") else None
+    if entry_id is None:
+        connection.send_error(msg["id"], "flow_error", "Config entry created but ID not found")
+        return
 
-    account = Account(
-        id=account_id,
-        name=name,
-        balance=msg["initial_balance"],
-    )
-    store.data.add_account(account)
-    await store.async_save()
-
-    connection.send_result(
-        msg["id"],
-        {
-            "success": True,
-            "account": {
-                "id": account.id,
-                "name": account.name,
-                "balance": account.balance,
+    coordinator = hass.data.get(DOMAIN, {}).get(entry_id)
+    if isinstance(coordinator, FinanceCoordinator) and coordinator.account:
+        account = coordinator.account
+        connection.send_result(
+            msg["id"],
+            {
+                "success": True,
+                "account": {
+                    "id": account.id,
+                    "name": account.name,
+                    "balance": account.balance,
+                },
             },
-        },
-    )
+        )
+    else:
+        # Entry created but coordinator not ready yet; return entry data directly
+        entry = result.get("result")
+        connection.send_result(
+            msg["id"],
+            {
+                "success": True,
+                "account": {
+                    "id": entry.data.get(CONF_ACCOUNT_ID, ""),
+                    "name": entry.data.get(CONF_ACCOUNT_NAME, name),
+                    "balance": entry.data.get(CONF_INITIAL_BALANCE, balance),
+                },
+            },
+        )
 
 
 @websocket_api.websocket_command(
@@ -612,16 +638,26 @@ async def ws_delete_account(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Delete an account."""
-    store = _get_store(hass)
-    await store.async_load()
+    """Delete an account via ConfigEntry removal."""
+    account_id = msg["account_id"]
 
-    account = store.data.get_account(msg["account_id"])
-    if account is None:
-        connection.send_error(msg["id"], "not_found", "Account not found")
+    # Find the config entry that owns this account
+    entry_to_remove = None
+    for entry in hass.config_entries.async_entries(DOMAIN):
+        if entry.data.get(CONF_ACCOUNT_ID) == account_id:
+            entry_to_remove = entry
+            break
+
+    if entry_to_remove is None:
+        connection.send_error(msg["id"], "not_found", "Account config entry not found")
         return
 
-    store.data.remove_account(msg["account_id"])
-    await store.async_save()
+    # Remove via ConfigEntry lifecycle (triggers async_unload_entry + async_remove_entry)
+    try:
+        await hass.config_entries.async_remove(entry_to_remove.entry_id)
+    except Exception:
+        _LOGGER.exception("Failed to remove config entry for account %s", account_id)
+        connection.send_error(msg["id"], "remove_error", "Failed to remove account config entry")
+        return
 
     connection.send_result(msg["id"], {"success": True})
