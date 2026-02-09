@@ -101,10 +101,10 @@
         "name": "快速記帳金額"
       },
       "plan_amount": {
-        "name": "金額"
+        "name": "{title} 金額"
       },
       "plan_day": {
-        "name": "執行日"
+        "name": "{title} 執行日"
       }
     },
     "text": {
@@ -112,7 +112,7 @@
         "name": "快速記帳備註"
       },
       "plan_title": {
-        "name": "名稱"
+        "name": "{title} 名稱"
       }
     },
     "button": {
@@ -134,20 +134,26 @@
         "name": "最後交易時間"
       },
       "plan_next_date": {
-        "name": "下次執行日"
+        "name": "{title} 下次執行日"
       },
       "plan_last_executed": {
-        "name": "上次執行時間"
+        "name": "{title} 上次執行時間"
       }
     },
     "select": {
       "plan_frequency": {
-        "name": "頻率"
+        "name": "{title} 頻率",
+        "state": {
+          "daily": "每日",
+          "weekly": "每週",
+          "monthly": "每月",
+          "yearly": "每年"
+        }
       }
     },
     "switch": {
       "plan_active": {
-        "name": "啟用"
+        "name": "{title} 啟用"
       }
     }
   }

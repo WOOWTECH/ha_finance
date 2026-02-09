@@ -101,10 +101,10 @@
         "name": "Quick Amount"
       },
       "plan_amount": {
-        "name": "Amount"
+        "name": "{title} Amount"
       },
       "plan_day": {
-        "name": "Execution Day"
+        "name": "{title} Execution Day"
       }
     },
     "text": {
@@ -112,7 +112,7 @@
         "name": "Quick Note"
       },
       "plan_title": {
-        "name": "Title"
+        "name": "{title} Title"
       }
     },
     "button": {
@@ -134,20 +134,26 @@
         "name": "Last Time"
       },
       "plan_next_date": {
-        "name": "Next Date"
+        "name": "{title} Next Date"
       },
       "plan_last_executed": {
-        "name": "Last Executed"
+        "name": "{title} Last Executed"
       }
     },
     "select": {
       "plan_frequency": {
-        "name": "Frequency"
+        "name": "{title} Frequency",
+        "state": {
+          "daily": "Daily",
+          "weekly": "Weekly",
+          "monthly": "Monthly",
+          "yearly": "Yearly"
+        }
       }
     },
     "switch": {
       "plan_active": {
-        "name": "Active"
+        "name": "{title} Active"
       }
     }
   }
