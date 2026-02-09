@@ -1,15 +1,20 @@
 """Sensor entities for Ha Finance Record integration."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import TYPE_CHECKING
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import dt as dt_util
 
 from .const import CONF_ACCOUNT_ID, CONF_CURRENCY, DEFAULT_CURRENCY, DOMAIN
 from .coordinator import FinanceCoordinator
@@ -174,7 +179,7 @@ class LastTimeSensor(FinanceSensorBase):
 
     _attr_icon = "mdi:clock-outline"
     _attr_translation_key = "last_time"
-    _attr_device_class = "timestamp"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(self, coordinator: FinanceCoordinator, account_id: str) -> None:
         """Initialize last time sensor."""
@@ -201,7 +206,7 @@ class PlanNextDateSensor(FinanceSensorBase):
 
     _attr_icon = "mdi:calendar-arrow-right"
     _attr_translation_key = "plan_next_date"
-    _attr_device_class = "date"
+    _attr_device_class = SensorDeviceClass.DATE
 
     def __init__(
         self, coordinator: FinanceCoordinator, account_id: str, plan_id: str
@@ -210,22 +215,26 @@ class PlanNextDateSensor(FinanceSensorBase):
         super().__init__(coordinator, account_id)
         self.plan_id = plan_id
         self._attr_unique_id = f"{account_id}_{plan_id}_next_date"
+        self._update_translation_placeholders()
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
+    def _update_translation_placeholders(self) -> None:
+        """Update translation placeholders from plan title."""
         account = self.account
         if account and self.plan_id in account.recurring_plans:
             plan = account.recurring_plans[self.plan_id]
-            return f"{plan.title} 下次執行日"
-        return f"{self.plan_id} 下次執行日"
+            self._attr_translation_placeholders = {"title": plan.title}
+        else:
+            self._attr_translation_placeholders = {"title": self.plan_id}
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_translation_placeholders()
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> date | None:
         """Return the next execution date."""
-        from datetime import date
-        from homeassistant.util import dt as dt_util
-
         account = self.account
         if account is None:
             return None
@@ -244,7 +253,7 @@ class PlanLastExecutedSensor(FinanceSensorBase):
 
     _attr_icon = "mdi:calendar-check"
     _attr_translation_key = "plan_last_executed"
-    _attr_device_class = "timestamp"
+    _attr_device_class = SensorDeviceClass.TIMESTAMP
 
     def __init__(
         self, coordinator: FinanceCoordinator, account_id: str, plan_id: str
@@ -253,21 +262,26 @@ class PlanLastExecutedSensor(FinanceSensorBase):
         super().__init__(coordinator, account_id)
         self.plan_id = plan_id
         self._attr_unique_id = f"{account_id}_{plan_id}_last_executed"
+        self._update_translation_placeholders()
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
+    def _update_translation_placeholders(self) -> None:
+        """Update translation placeholders from plan title."""
         account = self.account
         if account and self.plan_id in account.recurring_plans:
             plan = account.recurring_plans[self.plan_id]
-            return f"{plan.title} 上次執行"
-        return f"{self.plan_id} 上次執行"
+            self._attr_translation_placeholders = {"title": plan.title}
+        else:
+            self._attr_translation_placeholders = {"title": self.plan_id}
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_translation_placeholders()
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> datetime | None:
         """Return the last executed time."""
-        from homeassistant.util import dt as dt_util
-
         account = self.account
         if account is None:
             return None

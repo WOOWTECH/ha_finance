@@ -10,25 +10,11 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    CONF_ACCOUNT_ID,
-    DOMAIN,
-    FREQUENCY_DAILY,
-    FREQUENCY_MONTHLY,
-    FREQUENCY_WEEKLY,
-    FREQUENCY_YEARLY,
-)
+from .const import CONF_ACCOUNT_ID, DOMAIN, FREQUENCY_OPTIONS
 from .coordinator import FinanceCoordinator
 
 if TYPE_CHECKING:
     from .models import Account
-
-FREQUENCY_LABELS = {
-    FREQUENCY_DAILY: "每日",
-    FREQUENCY_WEEKLY: "每週",
-    FREQUENCY_MONTHLY: "每月",
-    FREQUENCY_YEARLY: "每年",
-}
 
 
 async def async_setup_entry(
@@ -75,7 +61,7 @@ class PlanFrequencySelect(CoordinatorEntity[FinanceCoordinator], SelectEntity):
     _attr_has_entity_name = True
     _attr_icon = "mdi:calendar-sync"
     _attr_translation_key = "plan_frequency"
-    _attr_options = list(FREQUENCY_LABELS.values())
+    _attr_options = list(FREQUENCY_OPTIONS)
 
     def __init__(
         self, coordinator: FinanceCoordinator, account_id: str, plan_id: str
@@ -85,6 +71,7 @@ class PlanFrequencySelect(CoordinatorEntity[FinanceCoordinator], SelectEntity):
         self._account_id = account_id
         self.plan_id = plan_id
         self._attr_unique_id = f"{account_id}_{plan_id}_frequency"
+        self._update_translation_placeholders()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -100,14 +87,20 @@ class PlanFrequencySelect(CoordinatorEntity[FinanceCoordinator], SelectEntity):
             return None
         return self.coordinator.data.get_account(self._account_id)
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
+    def _update_translation_placeholders(self) -> None:
+        """Update translation placeholders from plan title."""
         account = self.account
         if account and self.plan_id in account.recurring_plans:
             plan = account.recurring_plans[self.plan_id]
-            return f"{plan.title} 頻率"
-        return f"{self.plan_id} 頻率"
+            self._attr_translation_placeholders = {"title": plan.title}
+        else:
+            self._attr_translation_placeholders = {"title": self.plan_id}
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_translation_placeholders()
+        super()._handle_coordinator_update()
 
     @property
     def current_option(self) -> str | None:
@@ -118,18 +111,10 @@ class PlanFrequencySelect(CoordinatorEntity[FinanceCoordinator], SelectEntity):
         plan = account.recurring_plans.get(self.plan_id)
         if plan is None:
             return None
-        return FREQUENCY_LABELS.get(plan.frequency, plan.frequency)
+        return plan.frequency
 
     async def async_select_option(self, option: str) -> None:
         """Set the frequency."""
-        # Reverse lookup: label to value
-        frequency_value = None
-        for value, label in FREQUENCY_LABELS.items():
-            if label == option:
-                frequency_value = value
-                break
-
-        if frequency_value:
-            await self.coordinator.async_update_recurring_plan(
-                self.plan_id, frequency=frequency_value
-            )
+        await self.coordinator.async_update_recurring_plan(
+            self.plan_id, frequency=option
+        )

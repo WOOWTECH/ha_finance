@@ -70,6 +70,7 @@ class PlanActiveSwitch(CoordinatorEntity[FinanceCoordinator], SwitchEntity):
         self._account_id = account_id
         self.plan_id = plan_id
         self._attr_unique_id = f"{account_id}_{plan_id}_active"
+        self._update_translation_placeholders()
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -85,14 +86,20 @@ class PlanActiveSwitch(CoordinatorEntity[FinanceCoordinator], SwitchEntity):
             return None
         return self.coordinator.data.get_account(self._account_id)
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
+    def _update_translation_placeholders(self) -> None:
+        """Update translation placeholders from plan title."""
         account = self.account
         if account and self.plan_id in account.recurring_plans:
             plan = account.recurring_plans[self.plan_id]
-            return f"{plan.title} 啟用"
-        return f"{self.plan_id} 啟用"
+            self._attr_translation_placeholders = {"title": plan.title}
+        else:
+            self._attr_translation_placeholders = {"title": self.plan_id}
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_translation_placeholders()
+        super()._handle_coordinator_update()
 
     @property
     def is_on(self) -> bool | None:

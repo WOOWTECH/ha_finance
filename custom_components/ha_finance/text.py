@@ -129,15 +129,22 @@ class PlanTitleText(FinanceTextBase):
         super().__init__(coordinator, account_id)
         self.plan_id = plan_id
         self._attr_unique_id = f"{account_id}_{plan_id}_title"
+        self._update_translation_placeholders()
 
-    @property
-    def name(self) -> str:
-        """Return the name."""
+    def _update_translation_placeholders(self) -> None:
+        """Update translation placeholders from plan title."""
         account = self.account
         if account and self.plan_id in account.recurring_plans:
             plan = account.recurring_plans[self.plan_id]
-            return f"{plan.title} 名稱"
-        return f"{self.plan_id} 名稱"
+            self._attr_translation_placeholders = {"title": plan.title}
+        else:
+            self._attr_translation_placeholders = {"title": self.plan_id}
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Handle updated data from the coordinator."""
+        self._update_translation_placeholders()
+        super()._handle_coordinator_update()
 
     @property
     def native_value(self) -> str | None:
