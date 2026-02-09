@@ -113,7 +113,7 @@ class BalanceDisplaySensor(FinanceSensorBase):
         super().__init__(coordinator, account_id)
         self._attr_unique_id = f"{account_id}_balance_display"
         # Get currency from config entry options, default to NTD
-        currency = coordinator.entry.options.get(CONF_CURRENCY, DEFAULT_CURRENCY)
+        currency = coordinator.config_entry.options.get(CONF_CURRENCY, DEFAULT_CURRENCY)
         self._attr_native_unit_of_measurement = currency
 
     @property
@@ -136,7 +136,7 @@ class LastTransactionSensor(FinanceSensorBase):
         super().__init__(coordinator, account_id)
         self._attr_unique_id = f"{account_id}_last_transaction"
         # Get currency from config entry options, default to NTD
-        currency = coordinator.entry.options.get(CONF_CURRENCY, DEFAULT_CURRENCY)
+        currency = coordinator.config_entry.options.get(CONF_CURRENCY, DEFAULT_CURRENCY)
         self._attr_native_unit_of_measurement = currency
 
     @property
