@@ -17,7 +17,8 @@
       "invalid_day_yearly": "每年頻率的執行日必須為 1-28"
     },
     "abort": {
-      "already_configured": "此帳戶已設定"
+      "already_configured": "此帳戶已設定",
+      "invalid_input": "帳戶建立輸入無效"
     }
   },
   "options": {

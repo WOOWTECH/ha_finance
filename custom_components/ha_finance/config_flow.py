@@ -153,9 +153,9 @@ class HaFinanceOptionsFlow(OptionsFlow):
                 {
                     vol.Required("action"): vol.In(
                         {
-                            ACTION_ADD_RECURRING: "新增定期項目",
-                            ACTION_MANAGE_RECURRING: "管理定期項目",
-                            ACTION_DELETE_ACCOUNT: "刪除帳戶",
+                            ACTION_ADD_RECURRING: "Add Recurring Plan",
+                            ACTION_MANAGE_RECURRING: "Manage Recurring Plans",
+                            ACTION_DELETE_ACCOUNT: "Delete Account",
                         }
                     ),
                 }
@@ -284,8 +284,8 @@ class HaFinanceOptionsFlow(OptionsFlow):
                 {
                     vol.Required("action"): vol.In(
                         {
-                            ACTION_EDIT_PLAN: "編輯項目",
-                            ACTION_DELETE_PLAN: "刪除項目",
+                            ACTION_EDIT_PLAN: "Edit Plan",
+                            ACTION_DELETE_PLAN: "Delete Plan",
                         }
                     ),
                 }
@@ -401,9 +401,9 @@ class HaFinanceOptionsFlow(OptionsFlow):
     def _get_frequency_label(self, frequency: str) -> str:
         """Get display label for frequency."""
         labels = {
-            FREQUENCY_DAILY: "日",
-            FREQUENCY_WEEKLY: "週",
-            FREQUENCY_MONTHLY: "月",
-            FREQUENCY_YEARLY: "年",
+            FREQUENCY_DAILY: "Day",
+            FREQUENCY_WEEKLY: "Week",
+            FREQUENCY_MONTHLY: "Month",
+            FREQUENCY_YEARLY: "Year",
         }
         return labels.get(frequency, frequency)

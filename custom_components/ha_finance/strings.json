@@ -17,7 +17,8 @@
       "invalid_day_yearly": "Day must be 1-28 for yearly frequency"
     },
     "abort": {
-      "already_configured": "Account is already configured"
+      "already_configured": "Account is already configured",
+      "invalid_input": "Invalid input for account creation"
     }
   },
   "options": {
