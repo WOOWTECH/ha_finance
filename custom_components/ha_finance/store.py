@@ -19,35 +19,16 @@ _LOGGER = logging.getLogger(__name__)
 class FinanceStore:
     """Class to manage finance data storage.
 
-    This is a singleton per HomeAssistant instance to prevent data races
-    when multiple accounts are configured.
+    A single instance should be created per integration setup and stored
+    in hass.data[DOMAIN]["store"] to be shared across all config entries.
     """
-
-    _instances: dict[str, "FinanceStore"] = {}
-    _instance_lock = asyncio.Lock()
-    _data_lock: asyncio.Lock
-
-    def __new__(cls, hass: HomeAssistant) -> "FinanceStore":
-        """Ensure only one instance per hass instance."""
-        hass_id = id(hass)
-        key = str(hass_id)
-        # Note: This is synchronous, but race conditions are mitigated by
-        # ensuring get_or_create pattern is called from async context
-        if key not in cls._instances:
-            instance = super().__new__(cls)
-            instance._initialized = False
-            instance._data_lock = asyncio.Lock()
-            cls._instances[key] = instance
-        return cls._instances[key]
 
     def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the store."""
-        if getattr(self, "_initialized", False):
-            return
         self._hass = hass
         self._store: Store = Store(hass, STORAGE_VERSION, STORAGE_KEY)
         self._data: FinanceData | None = None
-        self._initialized = True
+        self._data_lock = asyncio.Lock()
 
     @property
     def data(self) -> FinanceData:
@@ -82,11 +63,3 @@ class FinanceStore:
             await self._store.async_remove()
             self._data = FinanceData()
             _LOGGER.debug("Removed all finance data")
-
-    @classmethod
-    def clear_instance(cls, hass: HomeAssistant) -> None:
-        """Clear the instance for a specific hass (for testing)."""
-        hass_id = id(hass)
-        key = str(hass_id)
-        if key in cls._instances:
-            del cls._instances[key]
