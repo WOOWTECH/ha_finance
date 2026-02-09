@@ -123,16 +123,13 @@ class HaFinanceConfigFlow(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry: ConfigEntry) -> HaFinanceOptionsFlow:
         """Get the options flow for this handler."""
-        return HaFinanceOptionsFlow(config_entry)
+        return HaFinanceOptionsFlow()
 
 
 class HaFinanceOptionsFlow(OptionsFlow):
     """Handle options flow for Ha Finance."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-        self._selected_plan_id: str | None = None
+    _selected_plan_id: str | None = None
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
