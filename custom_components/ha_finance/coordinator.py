@@ -42,7 +42,9 @@ NOTE_BALANCE_ADJUSTMENT = "Balance Adjustment"
 class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
     """Coordinator for managing finance data and recurring plans."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(
+        self, hass: HomeAssistant, entry: ConfigEntry, store: FinanceStore
+    ) -> None:
         """Initialize the coordinator."""
         super().__init__(
             hass,
@@ -51,7 +53,7 @@ class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
             update_interval=timedelta(minutes=5),
         )
         self.entry = entry
-        self.store = FinanceStore(hass)
+        self.store = store
         self._account_id: str = entry.data.get("account_id", "")
         self._unsub_time_change: Callable[[], None] | None = None
         self._low_balance_threshold: float = entry.options.get(

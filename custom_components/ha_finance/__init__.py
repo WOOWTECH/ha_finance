@@ -16,8 +16,9 @@ from .store import FinanceStore
 
 _LOGGER = logging.getLogger(__name__)
 
-# Key for tracking panel registration state in hass.data
+# Keys for metadata stored in hass.data[DOMAIN]
 _PANEL_REGISTERED_KEY = "_panel_registered"
+_STORE_KEY = "store"
 
 PLATFORMS_LIST: list[Platform] = [
     Platform.NUMBER,
@@ -29,6 +30,14 @@ PLATFORMS_LIST: list[Platform] = [
 ]
 
 
+def _get_or_create_store(hass: HomeAssistant) -> FinanceStore:
+    """Get existing store or create a new one in hass.data."""
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if _STORE_KEY not in domain_data:
+        domain_data[_STORE_KEY] = FinanceStore(hass)
+    return domain_data[_STORE_KEY]
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Ha Finance from a config entry."""
     hass.data.setdefault(DOMAIN, {})
@@ -38,7 +47,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await async_setup_panel(hass)
         hass.data[DOMAIN][_PANEL_REGISTERED_KEY] = True
 
-    coordinator = FinanceCoordinator(hass, entry)
+    # Create or retrieve the shared store
+    store = _get_or_create_store(hass)
+
+    coordinator = FinanceCoordinator(hass, entry, store)
     await coordinator.async_setup()
 
     # Ensure account exists in storage
@@ -83,8 +95,11 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS_LIST):
         hass.data[DOMAIN].pop(entry.entry_id)
 
-    # Remove panel if no more config entries (only _PANEL_REGISTERED_KEY remains)
-    remaining_entries = [k for k in hass.data.get(DOMAIN, {}).keys() if k != _PANEL_REGISTERED_KEY]
+    # Remove panel if no more config entries
+    remaining_entries = [
+        k for k in hass.data.get(DOMAIN, {}).keys()
+        if k not in (_PANEL_REGISTERED_KEY, _STORE_KEY)
+    ]
     if not remaining_entries and hass.data[DOMAIN].get(_PANEL_REGISTERED_KEY):
         await async_remove_panel(hass)
         hass.data[DOMAIN][_PANEL_REGISTERED_KEY] = False
@@ -108,9 +123,7 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
         await coordinator.store.async_save()
     else:
         # Coordinator already unloaded, access store directly
-        store = FinanceStore(hass)
+        store = _get_or_create_store(hass)
         await store.async_load()
         store.data.remove_account(account_id)
         await store.async_save()
-        # Clear the store instance since we're removing the account
-        FinanceStore.clear_instance(hass)

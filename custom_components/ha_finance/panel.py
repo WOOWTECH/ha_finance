@@ -96,9 +96,16 @@ async def async_remove_panel(hass: HomeAssistant) -> None:
 
 
 def _get_store(hass: HomeAssistant) -> FinanceStore:
-    """Get the finance store."""
+    """Get the shared finance store from hass.data."""
     from .store import FinanceStore
-    return FinanceStore(hass)
+    domain_data = hass.data.get(DOMAIN, {})
+    store = domain_data.get("store")
+    if store is not None:
+        return store
+    # Fallback: create store if not yet initialized (e.g., panel loaded before setup)
+    store = FinanceStore(hass)
+    hass.data.setdefault(DOMAIN, {})["store"] = store
+    return store
 
 
 async def _get_coordinator_for_account(
