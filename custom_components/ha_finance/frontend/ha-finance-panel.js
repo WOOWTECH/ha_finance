@@ -240,6 +240,7 @@ class HaFinancePanel extends LitElement {
       _allRecordsFilterDateEnd: { type: String },
       _showBalanceAdjustForm: { type: Boolean },
       _editingAccountNotes: { type: String },
+      _planFormFrequency: { type: String },
     };
   }
 
@@ -603,6 +604,23 @@ class HaFinancePanel extends LitElement {
         background: var(--card-background-color);
         color: var(--primary-text-color);
         box-sizing: border-box;
+      }
+
+      .form-group-checkbox {
+        display: flex;
+        align-items: center;
+      }
+
+      .checkbox-label {
+        display: flex !important;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+      }
+
+      .checkbox-label input[type="checkbox"] {
+        width: auto;
+        margin: 0;
       }
 
       .form-actions {
@@ -1029,6 +1047,7 @@ class HaFinancePanel extends LitElement {
     this._allRecordsFilterDateEnd = "";
     this._showBalanceAdjustForm = false;
     this._editingAccountNotes = "";
+    this._planFormFrequency = "monthly";
   }
 
   connectedCallback() {
@@ -1163,6 +1182,28 @@ class HaFinancePanel extends LitElement {
         new_balance: "New Balance",
         start_date: "Start Date",
         end_date: "End Date",
+        day_of_week: "Day of Week",
+        day_of_month: "Day of Month",
+        month: "Month",
+        monday: "Monday",
+        tuesday: "Tuesday",
+        wednesday: "Wednesday",
+        thursday: "Thursday",
+        friday: "Friday",
+        saturday: "Saturday",
+        sunday: "Sunday",
+        january: "January",
+        february: "February",
+        march: "March",
+        april: "April",
+        may_month: "May",
+        june: "June",
+        july: "July",
+        august: "August",
+        september: "September",
+        october: "October",
+        november: "November",
+        december: "December",
       },
       "zh-Hant": {
         panel_title: "財務記錄",
@@ -1220,6 +1261,28 @@ class HaFinancePanel extends LitElement {
         new_balance: "調整後餘額",
         start_date: "開始日期",
         end_date: "結束日期",
+        day_of_week: "星期幾",
+        day_of_month: "幾號",
+        month: "月份",
+        monday: "星期一",
+        tuesday: "星期二",
+        wednesday: "星期三",
+        thursday: "星期四",
+        friday: "星期五",
+        saturday: "星期六",
+        sunday: "星期日",
+        january: "一月",
+        february: "二月",
+        march: "三月",
+        april: "四月",
+        may_month: "五月",
+        june: "六月",
+        july: "七月",
+        august: "八月",
+        september: "九月",
+        october: "十月",
+        november: "十一月",
+        december: "十二月",
       },
     };
 
@@ -1338,6 +1401,7 @@ class HaFinancePanel extends LitElement {
 
   _openPlanForm(plan = null) {
     this._editingPlan = plan;
+    this._planFormFrequency = plan?.frequency || "monthly";
     this._showPlanForm = true;
   }
 
@@ -1352,7 +1416,8 @@ class HaFinancePanel extends LitElement {
     const title = form.title.value;
     const amount = parseFloat(form.amount.value);
     const frequency = form.frequency.value;
-    const day = parseInt(form.day.value);
+    const day = form.day ? parseInt(form.day.value) : 1;
+    const month = form.month ? parseInt(form.month.value) : 1;
     const active = form.active.checked;
 
     try {
@@ -1365,6 +1430,7 @@ class HaFinancePanel extends LitElement {
           amount,
           frequency,
           day,
+          month,
           active,
         });
       } else {
@@ -1375,6 +1441,7 @@ class HaFinancePanel extends LitElement {
           amount,
           frequency,
           day,
+          month,
           active,
         });
       }
@@ -1776,8 +1843,7 @@ class HaFinancePanel extends LitElement {
                   </span>
                 </div>
                 <div class="plan-details">
-                  ${this._getTranslation(plan.frequency)} |
-                  ${this._getTranslation("day")}: ${plan.day} |
+                  ${this._getTranslation(plan.frequency)}${plan.frequency === "daily" ? "" : plan.frequency === "weekly" ? ` | ${this._getTranslation(["", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"][plan.day] || "monday")}` : plan.frequency === "yearly" ? ` | ${this._getTranslation(["", "january", "february", "march", "april", "may_month", "june", "july", "august", "september", "october", "november", "december"][plan.month || 1])} ${plan.day}` : ` | ${this._getTranslation("day")}: ${plan.day}`} |
                   ${this._getTranslation("next_date")}: ${plan.next_date || "-"}
                 </div>
                 <div class="actions" style="margin-top: 12px;">
@@ -2090,34 +2156,80 @@ class HaFinancePanel extends LitElement {
             </div>
             <div class="form-group">
               <label>${this._getTranslation("frequency")}</label>
-              <select name="frequency" required>
-                <option value="daily" ?selected=${plan?.frequency === "daily"}>
+              <select name="frequency" required @change=${(e) => { this._planFormFrequency = e.target.value; }}>
+                <option value="daily" ?selected=${this._planFormFrequency === "daily"}>
                   ${this._getTranslation("daily")}
                 </option>
-                <option value="weekly" ?selected=${plan?.frequency === "weekly"}>
+                <option value="weekly" ?selected=${this._planFormFrequency === "weekly"}>
                   ${this._getTranslation("weekly")}
                 </option>
-                <option value="monthly" ?selected=${plan?.frequency === "monthly" || !plan}>
+                <option value="monthly" ?selected=${this._planFormFrequency === "monthly"}>
                   ${this._getTranslation("monthly")}
                 </option>
-                <option value="yearly" ?selected=${plan?.frequency === "yearly"}>
+                <option value="yearly" ?selected=${this._planFormFrequency === "yearly"}>
                   ${this._getTranslation("yearly")}
                 </option>
               </select>
             </div>
-            <div class="form-group">
-              <label>${this._getTranslation("day")}</label>
-              <input
-                type="number"
-                name="day"
-                min="1"
-                max="28"
-                required
-                .value=${plan?.day || 1}
-              />
-            </div>
-            <div class="form-group">
-              <label>
+            ${this._planFormFrequency === "weekly" ? html`
+              <div class="form-group">
+                <label>${this._getTranslation("day_of_week")}</label>
+                <select name="day" required>
+                  <option value="1" ?selected=${plan?.day === 1}>${this._getTranslation("monday")}</option>
+                  <option value="2" ?selected=${plan?.day === 2}>${this._getTranslation("tuesday")}</option>
+                  <option value="3" ?selected=${plan?.day === 3}>${this._getTranslation("wednesday")}</option>
+                  <option value="4" ?selected=${plan?.day === 4}>${this._getTranslation("thursday")}</option>
+                  <option value="5" ?selected=${plan?.day === 5}>${this._getTranslation("friday")}</option>
+                  <option value="6" ?selected=${plan?.day === 6}>${this._getTranslation("saturday")}</option>
+                  <option value="7" ?selected=${plan?.day === 7}>${this._getTranslation("sunday")}</option>
+                </select>
+              </div>
+            ` : ""}
+            ${this._planFormFrequency === "monthly" ? html`
+              <div class="form-group">
+                <label>${this._getTranslation("day_of_month")}</label>
+                <input
+                  type="number"
+                  name="day"
+                  min="1"
+                  max="28"
+                  required
+                  .value=${plan?.day || 1}
+                />
+              </div>
+            ` : ""}
+            ${this._planFormFrequency === "yearly" ? html`
+              <div class="form-group">
+                <label>${this._getTranslation("month")}</label>
+                <select name="month" required>
+                  <option value="1" ?selected=${plan?.month === 1}>${this._getTranslation("january")}</option>
+                  <option value="2" ?selected=${plan?.month === 2}>${this._getTranslation("february")}</option>
+                  <option value="3" ?selected=${plan?.month === 3}>${this._getTranslation("march")}</option>
+                  <option value="4" ?selected=${plan?.month === 4}>${this._getTranslation("april")}</option>
+                  <option value="5" ?selected=${plan?.month === 5}>${this._getTranslation("may_month")}</option>
+                  <option value="6" ?selected=${plan?.month === 6}>${this._getTranslation("june")}</option>
+                  <option value="7" ?selected=${plan?.month === 7}>${this._getTranslation("july")}</option>
+                  <option value="8" ?selected=${plan?.month === 8}>${this._getTranslation("august")}</option>
+                  <option value="9" ?selected=${plan?.month === 9}>${this._getTranslation("september")}</option>
+                  <option value="10" ?selected=${plan?.month === 10}>${this._getTranslation("october")}</option>
+                  <option value="11" ?selected=${plan?.month === 11}>${this._getTranslation("november")}</option>
+                  <option value="12" ?selected=${plan?.month === 12}>${this._getTranslation("december")}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>${this._getTranslation("day_of_month")}</label>
+                <input
+                  type="number"
+                  name="day"
+                  min="1"
+                  max="28"
+                  required
+                  .value=${plan?.day || 1}
+                />
+              </div>
+            ` : ""}
+            <div class="form-group form-group-checkbox">
+              <label class="checkbox-label">
                 <input
                   type="checkbox"
                   name="active"
