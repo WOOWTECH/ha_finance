@@ -12,21 +12,18 @@ from .const import CONF_ACCOUNT_ID, CONF_ACCOUNT_NAME, CONF_INITIAL_BALANCE, DOM
 from .coordinator import FinanceCoordinator
 from .models import Account
 from .panel import async_setup_panel, async_remove_panel
+from .services import async_setup_services
 from .store import FinanceStore
 
 _LOGGER = logging.getLogger(__name__)
 
 # Keys for metadata stored in hass.data[DOMAIN]
 _PANEL_REGISTERED_KEY = "_panel_registered"
+_SERVICES_REGISTERED_KEY = "_services_registered"
 _STORE_KEY = "store"
 
 PLATFORMS_LIST: list[Platform] = [
-    Platform.NUMBER,
-    Platform.TEXT,
-    Platform.BUTTON,
     Platform.SENSOR,
-    Platform.SELECT,
-    Platform.SWITCH,
 ]
 
 
@@ -46,6 +43,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not hass.data[DOMAIN].get(_PANEL_REGISTERED_KEY):
         await async_setup_panel(hass)
         hass.data[DOMAIN][_PANEL_REGISTERED_KEY] = True
+
+    # Register services only once (first account setup)
+    if not hass.data[DOMAIN].get(_SERVICES_REGISTERED_KEY):
+        await async_setup_services(hass)
+        hass.data[DOMAIN][_SERVICES_REGISTERED_KEY] = True
 
     # Create or retrieve the shared store
     store = _get_or_create_store(hass)

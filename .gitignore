@@ -9,3 +9,4 @@ venv/
 *.log
 .DS_Store
 .claude/
+user_prompt.md

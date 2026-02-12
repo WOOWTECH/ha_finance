@@ -23,7 +23,7 @@ from .const import (
     FREQUENCY_YEARLY,
     TRANSACTION_MANUAL,
 )
-from .coordinator import FinanceCoordinator
+from .coordinator import FinanceCoordinator, get_coordinator_for_account
 from .models import RecurringPlan, Transaction
 
 if TYPE_CHECKING:
@@ -112,20 +112,6 @@ def _get_store(hass: HomeAssistant) -> FinanceStore:
     return store
 
 
-async def _get_coordinator_for_account(
-    hass: HomeAssistant, account_id: str
-) -> FinanceCoordinator | None:
-    """Get coordinator for a specific account."""
-    if DOMAIN not in hass.data:
-        return None
-    for value in hass.data[DOMAIN].values():
-        if not isinstance(value, FinanceCoordinator):
-            continue
-        if value.account and value.account.id == account_id:
-            return value
-    return None
-
-
 # WebSocket Handlers
 
 @websocket_api.websocket_command(
@@ -207,7 +193,7 @@ async def ws_add_transaction(
     msg: dict[str, Any],
 ) -> None:
     """Add a new transaction."""
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
     transaction: Transaction | None = None
 
     if coordinator is None:
@@ -290,7 +276,7 @@ async def ws_update_transaction(
     await store.async_save()
 
     # Refresh coordinator if available
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
     if coordinator:
         await coordinator.async_refresh()
 
@@ -336,7 +322,7 @@ async def ws_delete_transaction(
     await store.async_save()
 
     # Refresh coordinator if available
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
     if coordinator:
         await coordinator.async_refresh()
 
@@ -364,7 +350,7 @@ async def ws_add_plan(
     """Add a new recurring plan."""
     import uuid
 
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
 
     if coordinator:
         # Generate plan_id
@@ -403,7 +389,7 @@ async def ws_update_plan(
     msg: dict[str, Any],
 ) -> None:
     """Update a recurring plan."""
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
 
     if coordinator is None:
         connection.send_error(msg["id"], "not_found", "Account coordinator not found")
@@ -433,7 +419,7 @@ async def ws_delete_plan(
     msg: dict[str, Any],
 ) -> None:
     """Delete a recurring plan."""
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
 
     if coordinator is None:
         connection.send_error(msg["id"], "not_found", "Account coordinator not found")
@@ -619,7 +605,7 @@ async def ws_update_account(
     await store.async_save()
 
     # Refresh coordinator if available
-    coordinator = await _get_coordinator_for_account(hass, msg["account_id"])
+    coordinator = get_coordinator_for_account(hass, msg["account_id"])
     if coordinator:
         await coordinator.async_refresh()
 

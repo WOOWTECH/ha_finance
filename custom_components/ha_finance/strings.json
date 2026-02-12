@@ -22,33 +22,6 @@
     }
   },
   "entity": {
-    "number": {
-      "balance": {
-        "name": "Balance"
-      },
-      "quick_amount": {
-        "name": "Quick Amount"
-      },
-      "plan_amount": {
-        "name": "{title} Amount"
-      },
-      "plan_day": {
-        "name": "{title} Execution Day"
-      }
-    },
-    "text": {
-      "quick_note": {
-        "name": "Quick Note"
-      },
-      "plan_title": {
-        "name": "{title} Title"
-      }
-    },
-    "button": {
-      "confirm_record": {
-        "name": "Confirm Record"
-      }
-    },
     "sensor": {
       "balance_display": {
         "name": "Balance"
@@ -68,21 +41,143 @@
       "plan_last_executed": {
         "name": "{title} Last Executed"
       }
-    },
-    "select": {
-      "plan_frequency": {
-        "name": "{title} Frequency",
-        "state": {
-          "daily": "Daily",
-          "weekly": "Weekly",
-          "monthly": "Monthly",
-          "yearly": "Yearly"
+    }
+  },
+  "services": {
+    "add_transaction": {
+      "name": "Add transaction",
+      "description": "Add a financial transaction to an account.",
+      "fields": {
+        "account_id": {
+          "name": "Account ID",
+          "description": "The ID of the account."
+        },
+        "amount": {
+          "name": "Amount",
+          "description": "The transaction amount (positive for income, negative for expense)."
+        },
+        "note": {
+          "name": "Note",
+          "description": "Optional note for the transaction."
         }
       }
     },
-    "switch": {
-      "plan_active": {
-        "name": "{title} Active"
+    "adjust_balance": {
+      "name": "Adjust balance",
+      "description": "Set an account balance to a new value and create an adjustment transaction.",
+      "fields": {
+        "account_id": {
+          "name": "Account ID",
+          "description": "The ID of the account."
+        },
+        "new_balance": {
+          "name": "New balance",
+          "description": "The new balance value."
+        }
+      }
+    },
+    "add_plan": {
+      "name": "Add recurring plan",
+      "description": "Add a recurring financial plan to an account.",
+      "fields": {
+        "account_id": {
+          "name": "Account ID",
+          "description": "The ID of the account."
+        },
+        "title": {
+          "name": "Title",
+          "description": "The name of the recurring plan."
+        },
+        "amount": {
+          "name": "Amount",
+          "description": "The transaction amount (positive for income, negative for expense)."
+        },
+        "frequency": {
+          "name": "Frequency",
+          "description": "The plan execution frequency (daily, weekly, monthly, yearly)."
+        },
+        "day": {
+          "name": "Day",
+          "description": "The execution day (1-7 for weekly, 1-28 for monthly/yearly)."
+        },
+        "month": {
+          "name": "Month",
+          "description": "The execution month for yearly frequency (1-12)."
+        },
+        "active": {
+          "name": "Active",
+          "description": "Whether the plan is active."
+        }
+      }
+    },
+    "update_plan": {
+      "name": "Update recurring plan",
+      "description": "Update fields of an existing recurring plan.",
+      "fields": {
+        "account_id": {
+          "name": "Account ID",
+          "description": "The ID of the account."
+        },
+        "plan_id": {
+          "name": "Plan ID",
+          "description": "The ID of the plan."
+        },
+        "title": {
+          "name": "Title",
+          "description": "The name of the recurring plan."
+        },
+        "amount": {
+          "name": "Amount",
+          "description": "The transaction amount (positive for income, negative for expense)."
+        },
+        "frequency": {
+          "name": "Frequency",
+          "description": "The plan execution frequency (daily, weekly, monthly, yearly)."
+        },
+        "day": {
+          "name": "Day",
+          "description": "The execution day (1-7 for weekly, 1-28 for monthly/yearly)."
+        },
+        "month": {
+          "name": "Month",
+          "description": "The execution month for yearly frequency (1-12)."
+        },
+        "active": {
+          "name": "Active",
+          "description": "Whether the plan is active."
+        }
+      }
+    },
+    "delete_plan": {
+      "name": "Delete recurring plan",
+      "description": "Remove a recurring plan from an account.",
+      "fields": {
+        "account_id": {
+          "name": "Account ID",
+          "description": "The ID of the account."
+        },
+        "plan_id": {
+          "name": "Plan ID",
+          "description": "The ID of the plan."
+        }
+      }
+    },
+    "set_plan_active": {
+      "name": "Set plan active state",
+      "description": "Enable or disable a recurring plan.",
+      "fields": {
+        "account_id": {
+          "name": "Account ID",
+          "description": "The ID of the account."
+        },
+        "plan_id": {
+          "name": "Plan ID",
+          "description": "The ID of the plan."
+        },
+        "active": {
+          "name": "Active",
+          "description": "Whether the plan is active."
+        }
       }
     }
   }

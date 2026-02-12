@@ -39,6 +39,20 @@ NOTE_AUTO_SUFFIX = " (Auto)"
 NOTE_BALANCE_ADJUSTMENT = "Balance Adjustment"
 
 
+def get_coordinator_for_account(
+    hass: HomeAssistant, account_id: str
+) -> FinanceCoordinator | None:
+    """Get coordinator for a specific account."""
+    if DOMAIN not in hass.data:
+        return None
+    for value in hass.data[DOMAIN].values():
+        if not isinstance(value, FinanceCoordinator):
+            continue
+        if value.account and value.account.id == account_id:
+            return value
+    return None
+
+
 class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
     """Coordinator for managing finance data and recurring plans."""
 
@@ -356,43 +370,21 @@ class FinanceCoordinator(DataUpdateCoordinator[FinanceData]):
         await self.async_refresh()
 
     async def _async_cleanup_plan_entities(self, plan_id: str) -> None:
-        """Remove entities associated with a deleted recurring plan."""
+        """Remove sensor entities associated with a deleted recurring plan."""
         entity_registry = er.async_get(self.hass)
         account_id = self._account_id
 
-        # Entity suffixes for recurring plan entities
-        entity_suffixes = [
-            "_amount",      # PlanAmountNumber
-            "_day",         # PlanDayNumber
-            "_title",       # PlanTitleText
-            "_frequency",   # PlanFrequencySelect
-            "_active",      # PlanActiveSwitch
-            "_next_date",   # PlanNextDateSensor
-            "_last_executed",  # PlanLastExecutedSensor
-        ]
+        # Only sensor entities remain for plans
+        sensor_suffixes = ["_next_date", "_last_executed"]
 
-        for suffix in entity_suffixes:
+        for suffix in sensor_suffixes:
             unique_id = f"{account_id}_{plan_id}{suffix}"
             entity_id = entity_registry.async_get_entity_id(
-                self._get_platform_for_suffix(suffix), DOMAIN, unique_id
+                "sensor", DOMAIN, unique_id
             )
             if entity_id:
                 entity_registry.async_remove(entity_id)
                 _LOGGER.debug("Removed entity %s for deleted plan %s", entity_id, plan_id)
-
-    @staticmethod
-    def _get_platform_for_suffix(suffix: str) -> str:
-        """Get the platform name for a given entity suffix."""
-        platform_map = {
-            "_amount": "number",
-            "_day": "number",
-            "_title": "text",
-            "_frequency": "select",
-            "_active": "switch",
-            "_next_date": "sensor",
-            "_last_executed": "sensor",
-        }
-        return platform_map.get(suffix, "sensor")
 
     async def async_set_plan_active(self, plan_id: str, active: bool) -> None:
         """Set the active state of a recurring plan."""
