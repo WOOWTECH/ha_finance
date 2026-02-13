@@ -241,6 +241,8 @@ class HaFinancePanel extends LitElement {
       _showBalanceAdjustForm: { type: Boolean },
       _editingAccountNotes: { type: String },
       _planFormFrequency: { type: String },
+      _calendarViewMonth: { type: Number },
+      _calendarSelectedDay: { type: Number },
     };
   }
 
@@ -621,6 +623,90 @@ class HaFinancePanel extends LitElement {
       .checkbox-label input[type="checkbox"] {
         width: auto;
         margin: 0;
+      }
+
+      .calendar-widget {
+        border: 1px solid var(--divider-color);
+        border-radius: 8px;
+        padding: 12px;
+        background: var(--card-background-color);
+      }
+
+      .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 15px;
+        color: var(--primary-text-color);
+      }
+
+      .calendar-header button {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        color: var(--primary-text-color);
+        cursor: pointer;
+        font-size: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+
+      .calendar-header button:hover {
+        background: var(--secondary-background-color, rgba(0,0,0,0.05));
+      }
+
+      .calendar-weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-size: 12px;
+        color: var(--secondary-text-color);
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+
+      .calendar-days {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+      }
+
+      .calendar-day {
+        aspect-ratio: 1;
+        border: none;
+        background: transparent;
+        color: var(--primary-text-color);
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+        padding: 0;
+        min-width: 32px;
+        min-height: 32px;
+      }
+
+      .calendar-day:hover {
+        background: var(--secondary-background-color, rgba(0,0,0,0.05));
+      }
+
+      .calendar-day.selected {
+        background: var(--primary-color);
+        color: var(--text-primary-color, white);
+        font-weight: 600;
+      }
+
+      .calendar-day.other-month {
+        color: var(--disabled-text-color, #ccc);
+        pointer-events: none;
       }
 
       .form-actions {
@@ -1048,6 +1134,8 @@ class HaFinancePanel extends LitElement {
     this._showBalanceAdjustForm = false;
     this._editingAccountNotes = "";
     this._planFormFrequency = "monthly";
+    this._calendarViewMonth = 1;
+    this._calendarSelectedDay = 1;
   }
 
   connectedCallback() {
@@ -1204,6 +1292,14 @@ class HaFinancePanel extends LitElement {
         october: "October",
         november: "November",
         december: "December",
+        select_date: "Select Date",
+        sun: "Sun",
+        mon: "Mon",
+        tue: "Tue",
+        wed: "Wed",
+        thu: "Thu",
+        fri: "Fri",
+        sat: "Sat",
       },
       "zh-Hant": {
         panel_title: "財務記錄",
@@ -1283,6 +1379,14 @@ class HaFinancePanel extends LitElement {
         october: "十月",
         november: "十一月",
         december: "十二月",
+        select_date: "選擇日期",
+        sun: "日",
+        mon: "一",
+        tue: "二",
+        wed: "三",
+        thu: "四",
+        fri: "五",
+        sat: "六",
       },
     };
 
@@ -1402,12 +1506,55 @@ class HaFinancePanel extends LitElement {
   _openPlanForm(plan = null) {
     this._editingPlan = plan;
     this._planFormFrequency = plan?.frequency || "monthly";
+    this._calendarViewMonth = plan?.month || 1;
+    this._calendarSelectedDay = plan?.day || 1;
     this._showPlanForm = true;
   }
 
   _closePlanForm() {
     this._showPlanForm = false;
     this._editingPlan = null;
+  }
+
+  _getCalendarDays(month) {
+    const REFERENCE_YEAR = 2025;
+    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    const daysInMonth = DAYS_IN_MONTH[month - 1];
+    const firstDayOfWeek = new Date(REFERENCE_YEAR, month - 1, 1).getDay();
+    const prevMonth = month === 1 ? 12 : month - 1;
+    const prevDays = DAYS_IN_MONTH[prevMonth - 1];
+    const cells = [];
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      cells.push({ day: prevDays - i, current: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ day: d, current: true });
+    }
+    let nextDay = 1;
+    while (cells.length % 7 !== 0) {
+      cells.push({ day: nextDay++, current: false });
+    }
+    return cells;
+  }
+
+  _calendarPrevMonth() {
+    this._calendarViewMonth = this._calendarViewMonth === 1 ? 12 : this._calendarViewMonth - 1;
+    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (this._calendarSelectedDay > DAYS_IN_MONTH[this._calendarViewMonth - 1]) {
+      this._calendarSelectedDay = DAYS_IN_MONTH[this._calendarViewMonth - 1];
+    }
+  }
+
+  _calendarNextMonth() {
+    this._calendarViewMonth = this._calendarViewMonth === 12 ? 1 : this._calendarViewMonth + 1;
+    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    if (this._calendarSelectedDay > DAYS_IN_MONTH[this._calendarViewMonth - 1]) {
+      this._calendarSelectedDay = DAYS_IN_MONTH[this._calendarViewMonth - 1];
+    }
+  }
+
+  _calendarSelectDay(day) {
+    this._calendarSelectedDay = day;
   }
 
   async _savePlan(e) {
@@ -2200,32 +2347,31 @@ class HaFinancePanel extends LitElement {
             ` : ""}
             ${this._planFormFrequency === "yearly" ? html`
               <div class="form-group">
-                <label>${this._getTranslation("month")}</label>
-                <select name="month" required>
-                  <option value="1" ?selected=${plan?.month === 1}>${this._getTranslation("january")}</option>
-                  <option value="2" ?selected=${plan?.month === 2}>${this._getTranslation("february")}</option>
-                  <option value="3" ?selected=${plan?.month === 3}>${this._getTranslation("march")}</option>
-                  <option value="4" ?selected=${plan?.month === 4}>${this._getTranslation("april")}</option>
-                  <option value="5" ?selected=${plan?.month === 5}>${this._getTranslation("may_month")}</option>
-                  <option value="6" ?selected=${plan?.month === 6}>${this._getTranslation("june")}</option>
-                  <option value="7" ?selected=${plan?.month === 7}>${this._getTranslation("july")}</option>
-                  <option value="8" ?selected=${plan?.month === 8}>${this._getTranslation("august")}</option>
-                  <option value="9" ?selected=${plan?.month === 9}>${this._getTranslation("september")}</option>
-                  <option value="10" ?selected=${plan?.month === 10}>${this._getTranslation("october")}</option>
-                  <option value="11" ?selected=${plan?.month === 11}>${this._getTranslation("november")}</option>
-                  <option value="12" ?selected=${plan?.month === 12}>${this._getTranslation("december")}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>${this._getTranslation("day_of_month")}</label>
-                <input
-                  type="number"
-                  name="day"
-                  min="1"
-                  max="28"
-                  required
-                  .value=${plan?.day || 1}
-                />
+                <label>${this._getTranslation("select_date")}</label>
+                <div class="calendar-widget">
+                  <div class="calendar-header">
+                    <button type="button" @click=${this._calendarPrevMonth}>&lsaquo;</button>
+                    <span>${this._getTranslation(["", "january", "february", "march", "april", "may_month", "june", "july", "august", "september", "october", "november", "december"][this._calendarViewMonth])}</span>
+                    <button type="button" @click=${this._calendarNextMonth}>&rsaquo;</button>
+                  </div>
+                  <div class="calendar-weekdays">
+                    ${["sun","mon","tue","wed","thu","fri","sat"].map(d =>
+                      html`<span>${this._getTranslation(d)}</span>`
+                    )}
+                  </div>
+                  <div class="calendar-days">
+                    ${this._getCalendarDays(this._calendarViewMonth).map(cell =>
+                      cell.current
+                        ? html`<button type="button"
+                            class="calendar-day ${cell.day === this._calendarSelectedDay ? 'selected' : ''}"
+                            @click=${() => this._calendarSelectDay(cell.day)}
+                          >${cell.day}</button>`
+                        : html`<span class="calendar-day other-month">${cell.day}</span>`
+                    )}
+                  </div>
+                </div>
+                <input type="hidden" name="month" .value=${String(this._calendarViewMonth)} />
+                <input type="hidden" name="day" .value=${String(this._calendarSelectedDay)} />
               </div>
             ` : ""}
             <div class="form-group form-group-checkbox">
