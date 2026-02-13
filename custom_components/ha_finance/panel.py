@@ -355,10 +355,28 @@ async def ws_add_plan(
     import uuid
 
     coordinator = get_coordinator_for_account(hass, msg["account_id"])
+    plan_id = f"plan_{uuid.uuid4().hex[:8]}"
 
-    if coordinator:
-        # Generate plan_id
-        plan_id = f"plan_{uuid.uuid4().hex[:8]}"
+    if coordinator is None:
+        # Fall back to direct store access
+        store = _get_store(hass)
+        await store.async_load()
+        account = store.data.get_account(msg["account_id"])
+        if account is None:
+            connection.send_error(msg["id"], "not_found", "Account not found")
+            return
+        plan = RecurringPlan(
+            id=plan_id,
+            title=msg["title"],
+            amount=msg["amount"],
+            frequency=msg["frequency"],
+            day=msg["day"],
+            month=msg.get("month", 1),
+            active=msg.get("active", True),
+        )
+        account.add_recurring_plan(plan)
+        await store.async_save()
+    else:
         await coordinator.async_add_recurring_plan(
             plan_id=plan_id,
             title=msg["title"],
@@ -368,9 +386,8 @@ async def ws_add_plan(
             month=msg["month"],
             active=msg["active"],
         )
-        connection.send_result(msg["id"], {"success": True, "plan_id": plan_id})
-    else:
-        connection.send_error(msg["id"], "not_found", "Account coordinator not found")
+
+    connection.send_result(msg["id"], {"success": True, "plan_id": plan_id})
 
 
 @websocket_api.websocket_command(
@@ -395,17 +412,30 @@ async def ws_update_plan(
     """Update a recurring plan."""
     coordinator = get_coordinator_for_account(hass, msg["account_id"])
 
-    if coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Account coordinator not found")
-        return
-
     # Extract update fields
     update_fields = {}
     for field in ["title", "amount", "frequency", "day", "month", "active"]:
         if field in msg:
             update_fields[field] = msg[field]
 
-    await coordinator.async_update_recurring_plan(msg["plan_id"], **update_fields)
+    if coordinator is None:
+        # Fall back to direct store access
+        store = _get_store(hass)
+        await store.async_load()
+        account = store.data.get_account(msg["account_id"])
+        if account is None:
+            connection.send_error(msg["id"], "not_found", "Account not found")
+            return
+        plan = account.recurring_plans.get(msg["plan_id"])
+        if plan is None:
+            connection.send_error(msg["id"], "not_found", "Plan not found")
+            return
+        for key, value in update_fields.items():
+            setattr(plan, key, value)
+        await store.async_save()
+    else:
+        await coordinator.async_update_recurring_plan(msg["plan_id"], **update_fields)
+
     connection.send_result(msg["id"], {"success": True})
 
 
@@ -426,10 +456,18 @@ async def ws_delete_plan(
     coordinator = get_coordinator_for_account(hass, msg["account_id"])
 
     if coordinator is None:
-        connection.send_error(msg["id"], "not_found", "Account coordinator not found")
-        return
+        # Fall back to direct store access
+        store = _get_store(hass)
+        await store.async_load()
+        account = store.data.get_account(msg["account_id"])
+        if account is None:
+            connection.send_error(msg["id"], "not_found", "Account not found")
+            return
+        account.remove_recurring_plan(msg["plan_id"])
+        await store.async_save()
+    else:
+        await coordinator.async_remove_recurring_plan(msg["plan_id"])
 
-    await coordinator.async_remove_recurring_plan(msg["plan_id"])
     connection.send_result(msg["id"], {"success": True})
 
 
