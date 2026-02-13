@@ -848,14 +848,6 @@ class HaFinancePanel extends LitElement {
         background: var(--secondary-background-color);
         color: var(--secondary-text-color);
       }
-      .type-badge.plan_summary {
-        background: rgba(var(--rgb-primary-color, 3, 169, 244), 0.15);
-        color: var(--primary-color);
-      }
-      .plan-row {
-        background: rgba(var(--rgb-primary-color, 3, 169, 244), 0.05);
-      }
-
       /* Account Management Section */
       .account-management-section {
         display: flex;
@@ -1866,32 +1858,13 @@ class HaFinancePanel extends LitElement {
   _renderAllRecords() {
     // Combine transactions and recurring plan records
     const transactions = this._selectedAccount?.transactions || [];
-    const plans = Object.entries(this._selectedAccount?.recurring_plans || {});
 
-    // Create combined list
+    // Create list from executed transactions only
     let allRecords = transactions.map(tx => ({
       ...tx,
       recordType: 'transaction',
       displayType: this._getTranslation(tx.type),
     }));
-
-    // Add plan info to display
-    plans.forEach(([planId, plan]) => {
-      // Add a summary row for each active plan
-      if (plan.active) {
-        allRecords.push({
-          id: `plan_${planId}`,
-          recordType: 'plan_summary',
-          title: plan.title,
-          amount: plan.amount,
-          frequency: plan.frequency,
-          day: plan.day,
-          next_date: plan.next_date,
-          timestamp: plan.next_date || new Date().toISOString(),
-          displayType: `${this._getTranslation("recurring")} - ${this._getTranslation(plan.frequency)}`,
-        });
-      }
-    });
 
     // Sort by timestamp descending
     allRecords.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -1956,7 +1929,7 @@ class HaFinancePanel extends LitElement {
               <tbody>
                 ${allRecords.map(
                   (record) => html`
-                    <tr class="${record.recordType === 'plan_summary' ? 'plan-row' : ''}">
+                    <tr>
                       <td>${this._formatDate(record.timestamp)}</td>
                       <td class=${record.amount >= 0 ? "amount-positive" : "amount-negative"}>
                         ${record.amount >= 0 ? "+" : ""}${this._formatCurrency(record.amount)}
