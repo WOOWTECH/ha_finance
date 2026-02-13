@@ -1517,12 +1517,10 @@ class HaFinancePanel extends LitElement {
   }
 
   _getCalendarDays(month) {
-    const REFERENCE_YEAR = 2025;
-    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    const daysInMonth = DAYS_IN_MONTH[month - 1];
-    const firstDayOfWeek = new Date(REFERENCE_YEAR, month - 1, 1).getDay();
-    const prevMonth = month === 1 ? 12 : month - 1;
-    const prevDays = DAYS_IN_MONTH[prevMonth - 1];
+    const year = new Date().getFullYear();
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+    const prevDays = new Date(year, month - 1, 0).getDate();
     const cells = [];
     for (let i = firstDayOfWeek - 1; i >= 0; i--) {
       cells.push({ day: prevDays - i, current: false });
@@ -1539,17 +1537,19 @@ class HaFinancePanel extends LitElement {
 
   _calendarPrevMonth() {
     this._calendarViewMonth = this._calendarViewMonth === 1 ? 12 : this._calendarViewMonth - 1;
-    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    if (this._calendarSelectedDay > DAYS_IN_MONTH[this._calendarViewMonth - 1]) {
-      this._calendarSelectedDay = DAYS_IN_MONTH[this._calendarViewMonth - 1];
+    const year = new Date().getFullYear();
+    const daysInMonth = new Date(year, this._calendarViewMonth, 0).getDate();
+    if (this._calendarSelectedDay > daysInMonth) {
+      this._calendarSelectedDay = daysInMonth;
     }
   }
 
   _calendarNextMonth() {
     this._calendarViewMonth = this._calendarViewMonth === 12 ? 1 : this._calendarViewMonth + 1;
-    const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-    if (this._calendarSelectedDay > DAYS_IN_MONTH[this._calendarViewMonth - 1]) {
-      this._calendarSelectedDay = DAYS_IN_MONTH[this._calendarViewMonth - 1];
+    const year = new Date().getFullYear();
+    const daysInMonth = new Date(year, this._calendarViewMonth, 0).getDate();
+    if (this._calendarSelectedDay > daysInMonth) {
+      this._calendarSelectedDay = daysInMonth;
     }
   }
 
