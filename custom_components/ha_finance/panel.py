@@ -134,6 +134,7 @@ async def ws_get_accounts(
             "id": account.id,
             "name": account.name,
             "balance": account.balance,
+            "notes": account.notes,
         }
         for account in store.data.accounts.values()
     ]
@@ -167,6 +168,7 @@ async def ws_get_account(
             "id": account.id,
             "name": account.name,
             "balance": account.balance,
+            "notes": account.notes,
             "transactions": [tx.to_dict() for tx in account.transactions],
             "recurring_plans": {
                 plan_id: plan.to_dict()
@@ -184,6 +186,7 @@ async def ws_get_account(
         vol.Required("account_id"): str,
         vol.Required("amount"): vol.Coerce(float),
         vol.Optional("note", default=""): str,
+        vol.Optional("transaction_type", default=TRANSACTION_MANUAL): str,
     }
 )
 @websocket_api.async_response
@@ -208,7 +211,7 @@ async def ws_add_transaction(
         transaction = Transaction.create(
             amount=msg["amount"],
             note=msg["note"],
-            transaction_type=TRANSACTION_MANUAL,
+            transaction_type=msg["transaction_type"],
         )
         account.add_transaction(transaction)
         await store.async_save()
@@ -216,6 +219,7 @@ async def ws_add_transaction(
         transaction = await coordinator.async_add_transaction(
             amount=msg["amount"],
             note=msg["note"],
+            transaction_type=msg["transaction_type"],
         )
 
     if transaction is None:
@@ -572,7 +576,8 @@ async def ws_add_account(
     {
         vol.Required("type"): "ha_finance/update_account",
         vol.Required("account_id"): str,
-        vol.Required("name"): str,
+        vol.Optional("name"): str,
+        vol.Optional("notes"): str,
     }
 )
 @websocket_api.async_response
@@ -581,12 +586,7 @@ async def ws_update_account(
     connection: websocket_api.ActiveConnection,
     msg: dict[str, Any],
 ) -> None:
-    """Update an account (rename)."""
-    name = msg["name"].strip()
-    if not name:
-        connection.send_error(msg["id"], "invalid_name", "Account name cannot be empty")
-        return
-
+    """Update an account (rename and/or notes)."""
     store = _get_store(hass)
     await store.async_load()
 
@@ -595,13 +595,21 @@ async def ws_update_account(
         connection.send_error(msg["id"], "not_found", "Account not found")
         return
 
-    # Check for duplicate name (excluding current account)
-    for existing in store.data.accounts.values():
-        if existing.id != msg["account_id"] and existing.name.lower() == name.lower():
-            connection.send_error(msg["id"], "duplicate_name", "Account with this name already exists")
+    if "name" in msg:
+        name = msg["name"].strip()
+        if not name:
+            connection.send_error(msg["id"], "invalid_name", "Account name cannot be empty")
             return
+        # Check for duplicate name (excluding current account)
+        for existing in store.data.accounts.values():
+            if existing.id != msg["account_id"] and existing.name.lower() == name.lower():
+                connection.send_error(msg["id"], "duplicate_name", "Account with this name already exists")
+                return
+        account.name = name
 
-    account.name = name
+    if "notes" in msg:
+        account.notes = msg["notes"]
+
     await store.async_save()
 
     # Refresh coordinator if available

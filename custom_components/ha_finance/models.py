@@ -116,6 +116,7 @@ class Account:
     id: str
     name: str
     balance: float = 0.0
+    notes: str = ""
     transactions: list[Transaction] = field(default_factory=list)
     recurring_plans: dict[str, RecurringPlan] = field(default_factory=dict)
 
@@ -124,6 +125,7 @@ class Account:
         return {
             "name": self.name,
             "balance": self.balance,
+            "notes": self.notes,
             "transactions": [tx.to_dict() for tx in self.transactions],
             "recurring_plans": {
                 plan_id: plan.to_dict()
@@ -146,6 +148,7 @@ class Account:
             id=account_id,
             name=data["name"],
             balance=data.get("balance", 0.0),
+            notes=data.get("notes", ""),
             transactions=transactions,
             recurring_plans=recurring_plans,
         )

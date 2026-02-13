@@ -239,6 +239,7 @@ class HaFinancePanel extends LitElement {
       _allRecordsFilterDateStart: { type: String },
       _allRecordsFilterDateEnd: { type: String },
       _showBalanceAdjustForm: { type: Boolean },
+      _showNotesForm: { type: Boolean },
       _editingAccountNotes: { type: String },
       _planFormFrequency: { type: String },
       _calendarViewMonth: { type: Number },
@@ -1124,6 +1125,7 @@ class HaFinancePanel extends LitElement {
     this._allRecordsFilterDateStart = "";
     this._allRecordsFilterDateEnd = "";
     this._showBalanceAdjustForm = false;
+    this._showNotesForm = false;
     this._editingAccountNotes = "";
     this._planFormFrequency = "monthly";
     this._calendarViewMonth = 1;
@@ -2018,14 +2020,13 @@ class HaFinancePanel extends LitElement {
         <!-- Account Notes Section -->
         <div class="account-section">
           <h4 class="section-title">${this._getTranslation("account_notes")}</h4>
-          <textarea
-            class="account-notes-input"
-            placeholder="${this._getTranslation("account_notes")}..."
-            .value=${this._editingAccountNotes !== "" ? this._editingAccountNotes : (account.notes || "")}
-            @input=${(e) => this._editingAccountNotes = e.target.value}
-          ></textarea>
-          <button class="btn btn-primary" @click=${this._saveAccountNotes}>
-            ${this._getTranslation("save")}
+          <p class="section-description" style="word-break: break-word;">
+            ${account.notes
+              ? (account.notes.length > 100 ? account.notes.substring(0, 100) + "..." : account.notes)
+              : html`<span style="color: var(--secondary-text-color, #999);">No notes yet</span>`}
+          </p>
+          <button class="btn btn-secondary" @click=${() => { this._editingAccountNotes = account.notes || ""; this._showNotesForm = true; }}>
+            ${this._getTranslation("account_notes")}
           </button>
         </div>
 
@@ -2064,6 +2065,7 @@ class HaFinancePanel extends LitElement {
       </div>
 
       ${this._showBalanceAdjustForm ? this._renderBalanceAdjustForm() : ""}
+      ${this._showNotesForm ? this._renderNotesForm() : ""}
     `;
   }
 
@@ -2114,6 +2116,32 @@ class HaFinancePanel extends LitElement {
     `;
   }
 
+  _renderNotesForm() {
+    return html`
+      <div class="modal-overlay" @click=${() => this._showNotesForm = false}>
+        <div class="modal" @click=${(e) => e.stopPropagation()}>
+          <h2>${this._getTranslation("account_notes")}</h2>
+          <div class="form-group">
+            <textarea
+              class="account-notes-input"
+              placeholder="${this._getTranslation("account_notes")}..."
+              .value=${this._editingAccountNotes}
+              @input=${(e) => this._editingAccountNotes = e.target.value}
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" @click=${() => this._showNotesForm = false}>
+              ${this._getTranslation("cancel")}
+            </button>
+            <button type="button" class="btn btn-primary" @click=${this._saveAccountNotes}>
+              ${this._getTranslation("save")}
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   async _saveBalanceAdjustment(e) {
     e.preventDefault();
     const form = e.target;
@@ -2148,6 +2176,7 @@ class HaFinancePanel extends LitElement {
         account_id: this._selectedAccountId,
         notes: this._editingAccountNotes,
       });
+      this._showNotesForm = false;
       await this._loadAccountDetails();
       // Reset editing state
       this._editingAccountNotes = "";
