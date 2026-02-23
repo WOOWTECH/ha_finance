@@ -2119,6 +2119,13 @@ class HaFinancePanel extends LitElement {
             ${this._filterDateEnd ? html`<button type="button" class="date-picker-clear" @click=${() => { this._filterDateEnd = ""; }}>&times;</button>` : ""}
           </div>
         </div>
+        <button
+          class="btn btn-primary add-button"
+          style="margin-left: auto;"
+          @click=${() => this._openTransactionForm()}
+        >
+          ${this._getTranslation("add_transaction")}
+        </button>
       </div>
 
       ${transactions.length === 0
@@ -2164,13 +2171,6 @@ class HaFinancePanel extends LitElement {
               </tbody>
             </table>
           `}
-
-      <button
-        class="btn btn-primary add-button"
-        @click=${() => this._openTransactionForm()}
-      >
-        ${this._getTranslation("add_transaction")}
-      </button>
     `;
   }
 

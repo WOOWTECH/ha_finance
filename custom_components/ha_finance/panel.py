@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 PANEL_URL = "/ha_finance_panel"
 PANEL_ICON = "mdi:finance"
 PANEL_TITLE = "Finance Record"
-PANEL_VERSION = "3.4.0"  # Remove sidebar btn, fix title color
+PANEL_VERSION = "3.5.0"  # Move Add Transaction to filter row
 
 
 async def async_setup_panel(hass: HomeAssistant) -> None:
