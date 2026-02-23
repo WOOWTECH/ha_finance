@@ -34,14 +34,6 @@ EVENT_RECURRING_EXECUTED: Final = "ha_finance_recurring_executed"
 EVENT_BALANCE_ADJUSTED: Final = "ha_finance_balance_adjusted"
 EVENT_LOW_BALANCE: Final = "ha_finance_low_balance"
 
-# Service names
-SERVICE_ADD_TRANSACTION: Final = "add_transaction"
-SERVICE_ADJUST_BALANCE: Final = "adjust_balance"
-SERVICE_ADD_PLAN: Final = "add_plan"
-SERVICE_UPDATE_PLAN: Final = "update_plan"
-SERVICE_DELETE_PLAN: Final = "delete_plan"
-SERVICE_SET_PLAN_ACTIVE: Final = "set_plan_active"
-
 # Defaults
 DEFAULT_BALANCE: Final = 0.0
 DEFAULT_LOW_BALANCE_THRESHOLD: Final = 1000.0

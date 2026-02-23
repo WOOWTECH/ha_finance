@@ -13,14 +13,12 @@ from .const import CONF_ACCOUNT_ID, CONF_ACCOUNT_NAME, CONF_INITIAL_BALANCE, DOM
 from .coordinator import FinanceCoordinator
 from .models import Account
 from .panel import async_setup_panel, async_remove_panel
-from .services import async_setup_services
 from .store import FinanceStore
 
 _LOGGER = logging.getLogger(__name__)
 
 # Keys for metadata stored in hass.data[DOMAIN]
 _PANEL_REGISTERED_KEY = "_panel_registered"
-_SERVICES_REGISTERED_KEY = "_services_registered"
 _STORE_KEY = "store"
 
 PLATFORMS_LIST: list[Platform] = [
@@ -43,10 +41,6 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     # Register panel, WebSocket commands, and event listeners (once)
     await async_setup_panel(hass)
     hass.data[DOMAIN][_PANEL_REGISTERED_KEY] = True
-
-    # Register services (once)
-    await async_setup_services(hass)
-    hass.data[DOMAIN][_SERVICES_REGISTERED_KEY] = True
 
     # Initialize shared store
     _get_or_create_store(hass)
@@ -104,7 +98,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Remove panel if no more config entries
     remaining_entries = [
         k for k in hass.data.get(DOMAIN, {}).keys()
-        if k not in (_PANEL_REGISTERED_KEY, _SERVICES_REGISTERED_KEY, _STORE_KEY)
+        if k not in (_PANEL_REGISTERED_KEY, _STORE_KEY)
     ]
     if not remaining_entries and hass.data[DOMAIN].get(_PANEL_REGISTERED_KEY):
         await async_remove_panel(hass)
