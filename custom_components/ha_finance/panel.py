@@ -35,7 +35,7 @@ _LOGGER = logging.getLogger(__name__)
 PANEL_URL = "/ha_finance_panel"
 PANEL_ICON = "mdi:finance"
 PANEL_TITLE = "Finance Record"
-PANEL_VERSION = "3.2.0"  # Frontend-driven sidebar title i18n
+PANEL_VERSION = "3.3.0"  # Custom calendar date pickers for i18n
 
 
 async def async_setup_panel(hass: HomeAssistant) -> None:

@@ -244,6 +244,12 @@ class HaFinancePanel extends LitElement {
       _planFormFrequency: { type: String },
       _calendarViewMonth: { type: Number },
       _calendarSelectedDay: { type: Number },
+      _filterCalendarOpen: { type: String },
+      _filterCalendarViewMonth: { type: Number },
+      _filterCalendarViewYear: { type: Number },
+      _allRecordsCalendarOpen: { type: String },
+      _allRecordsCalendarViewMonth: { type: Number },
+      _allRecordsCalendarViewYear: { type: Number },
     };
   }
 
@@ -475,10 +481,70 @@ class HaFinancePanel extends LitElement {
         flex-wrap: wrap;
       }
 
-      .filter-bar .date-range input[type="date"] {
-        flex: 1;
+      .date-picker-wrapper {
+        position: relative;
+        display: inline-block;
+      }
+
+      .date-picker-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--divider-color);
+        border-radius: 4px;
+        padding: 6px 10px;
+        background: var(--card-background-color, #fff);
+        color: var(--primary-text-color);
+        cursor: pointer;
+        font-size: 14px;
         min-width: 120px;
-        max-width: 150px;
+        transition: border-color 0.2s;
+      }
+
+      .date-picker-trigger:hover {
+        border-color: var(--primary-color);
+      }
+
+      .date-picker-trigger .placeholder {
+        color: var(--secondary-text-color);
+      }
+
+      .date-picker-trigger svg {
+        flex-shrink: 0;
+        color: var(--secondary-text-color);
+      }
+
+      .date-picker-clear {
+        position: absolute;
+        top: 50%;
+        right: -20px;
+        transform: translateY(-50%);
+        border: none;
+        background: transparent;
+        color: var(--secondary-text-color);
+        cursor: pointer;
+        font-size: 16px;
+        padding: 2px 4px;
+        line-height: 1;
+      }
+
+      .date-picker-clear:hover {
+        color: var(--error-color, #f44336);
+      }
+
+      .date-picker-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        z-index: 200;
+        margin-top: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        border-radius: 8px;
+        background: var(--card-background-color, #fff);
+      }
+
+      .date-picker-dropdown .calendar-widget {
+        min-width: 260px;
       }
 
       .filter-bar .date-separator {
@@ -1020,10 +1086,21 @@ class HaFinancePanel extends LitElement {
           width: 100%;
         }
 
-        .filter-bar .date-range input[type="date"] {
+        .date-picker-wrapper {
           flex: 1;
           min-width: 0;
-          max-width: none;
+        }
+
+        .date-picker-trigger {
+          width: 100%;
+          min-width: 0;
+          font-size: 13px;
+          padding: 6px 8px;
+        }
+
+        .date-picker-dropdown {
+          left: auto;
+          right: 0;
         }
 
         .filter-bar .date-separator {
@@ -1130,6 +1207,13 @@ class HaFinancePanel extends LitElement {
     this._planFormFrequency = "monthly";
     this._calendarViewMonth = 1;
     this._calendarSelectedDay = 1;
+    const now = new Date();
+    this._filterCalendarOpen = "";
+    this._filterCalendarViewMonth = now.getMonth() + 1;
+    this._filterCalendarViewYear = now.getFullYear();
+    this._allRecordsCalendarOpen = "";
+    this._allRecordsCalendarViewMonth = now.getMonth() + 1;
+    this._allRecordsCalendarViewYear = now.getFullYear();
     this._prevLanguage = null;
   }
 
@@ -1141,11 +1225,25 @@ class HaFinancePanel extends LitElement {
       this._prevLanguage = lang;
       HaFinancePanel._startSidebarPatcher(lang);
     }
+    this._onDocumentClick = (e) => {
+      if (this._filterCalendarOpen || this._allRecordsCalendarOpen) {
+        const path = e.composedPath();
+        const inDropdown = path.some(el => el.classList && (el.classList.contains("date-picker-wrapper")));
+        if (!inDropdown) {
+          this._filterCalendarOpen = "";
+          this._allRecordsCalendarOpen = "";
+        }
+      }
+    };
+    document.addEventListener("click", this._onDocumentClick, true);
   }
 
   disconnectedCallback() {
     super.disconnectedCallback();
     this._prevLanguage = null;
+    if (this._onDocumentClick) {
+      document.removeEventListener("click", this._onDocumentClick, true);
+    }
   }
 
   updated(changedProperties) {
@@ -1469,12 +1567,6 @@ class HaFinancePanel extends LitElement {
     return translations[langKey]?.[key] || translations["en"][key] || key;
   }
 
-  _getDateInputLang() {
-    const lang = this.hass?.language || "en";
-    if (lang.startsWith("zh")) return "zh-Hant";
-    return lang;
-  }
-
   _formatCurrency(amount) {
     return new Intl.NumberFormat(this.hass?.language || "en", {
       minimumFractionDigits: 2,
@@ -1635,6 +1727,132 @@ class HaFinancePanel extends LitElement {
 
   _calendarSelectDay(day) {
     this._calendarSelectedDay = day;
+  }
+
+  _getFilterCalendarDays(month, year) {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const firstDayOfWeek = new Date(year, month - 1, 1).getDay();
+    const prevDays = new Date(year, month - 1, 0).getDate();
+    const cells = [];
+    for (let i = firstDayOfWeek - 1; i >= 0; i--) {
+      cells.push({ day: prevDays - i, current: false });
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      cells.push({ day: d, current: true });
+    }
+    let nextDay = 1;
+    while (cells.length % 7 !== 0) {
+      cells.push({ day: nextDay++, current: false });
+    }
+    return cells;
+  }
+
+  _filterCalendarPrev() {
+    if (this._filterCalendarViewMonth === 1) {
+      this._filterCalendarViewMonth = 12;
+      this._filterCalendarViewYear--;
+    } else {
+      this._filterCalendarViewMonth--;
+    }
+  }
+
+  _filterCalendarNext() {
+    if (this._filterCalendarViewMonth === 12) {
+      this._filterCalendarViewMonth = 1;
+      this._filterCalendarViewYear++;
+    } else {
+      this._filterCalendarViewMonth++;
+    }
+  }
+
+  _allRecordsCalendarPrev() {
+    if (this._allRecordsCalendarViewMonth === 1) {
+      this._allRecordsCalendarViewMonth = 12;
+      this._allRecordsCalendarViewYear--;
+    } else {
+      this._allRecordsCalendarViewMonth--;
+    }
+  }
+
+  _allRecordsCalendarNext() {
+    if (this._allRecordsCalendarViewMonth === 12) {
+      this._allRecordsCalendarViewMonth = 1;
+      this._allRecordsCalendarViewYear++;
+    } else {
+      this._allRecordsCalendarViewMonth++;
+    }
+  }
+
+  _filterCalendarSelectDay(day) {
+    const m = String(this._filterCalendarViewMonth).padStart(2, "0");
+    const d = String(day).padStart(2, "0");
+    const iso = `${this._filterCalendarViewYear}-${m}-${d}`;
+    if (this._filterCalendarOpen === "start") {
+      this._filterDateStart = iso;
+    } else if (this._filterCalendarOpen === "end") {
+      this._filterDateEnd = iso;
+    }
+    this._filterCalendarOpen = "";
+  }
+
+  _allRecordsCalendarSelectDay(day) {
+    const m = String(this._allRecordsCalendarViewMonth).padStart(2, "0");
+    const d = String(day).padStart(2, "0");
+    const iso = `${this._allRecordsCalendarViewYear}-${m}-${d}`;
+    if (this._allRecordsCalendarOpen === "start") {
+      this._allRecordsFilterDateStart = iso;
+    } else if (this._allRecordsCalendarOpen === "end") {
+      this._allRecordsFilterDateEnd = iso;
+    }
+    this._allRecordsCalendarOpen = "";
+  }
+
+  _formatDateForInput(isoString) {
+    if (!isoString) return "";
+    try {
+      const date = new Date(isoString + "T00:00:00");
+      return date.toLocaleDateString(this.hass?.language || "en", {
+        year: "numeric", month: "2-digit", day: "2-digit"
+      });
+    } catch { return isoString; }
+  }
+
+  _isFilterDateSelected(day, month, year, isoString) {
+    if (!isoString) return false;
+    const parts = isoString.split("-");
+    return parseInt(parts[0]) === year && parseInt(parts[1]) === month && parseInt(parts[2]) === day;
+  }
+
+  _renderFilterCalendar(which, viewMonth, viewYear, selectDayFn, prevFn, nextFn, startDate, endDate) {
+    const monthNames = ["", "january", "february", "march", "april", "may_month", "june", "july", "august", "september", "october", "november", "december"];
+    const cells = this._getFilterCalendarDays(viewMonth, viewYear);
+    const selectedIso = which === "start" ? startDate : endDate;
+    return html`
+      <div class="date-picker-dropdown" @click=${(e) => e.stopPropagation()}>
+        <div class="calendar-widget">
+          <div class="calendar-header">
+            <button type="button" @click=${prevFn}>&lsaquo;</button>
+            <span>${this._getTranslation(monthNames[viewMonth])} ${viewYear}</span>
+            <button type="button" @click=${nextFn}>&rsaquo;</button>
+          </div>
+          <div class="calendar-weekdays">
+            ${["sun","mon","tue","wed","thu","fri","sat"].map(d =>
+              html`<span>${this._getTranslation(d)}</span>`
+            )}
+          </div>
+          <div class="calendar-days">
+            ${cells.map(cell =>
+              cell.current
+                ? html`<button type="button"
+                    class="calendar-day ${this._isFilterDateSelected(cell.day, viewMonth, viewYear, selectedIso) ? 'selected' : ''}"
+                    @click=${() => selectDayFn(cell.day)}
+                  >${cell.day}</button>`
+                : html`<span class="calendar-day other-month">${cell.day}</span>`
+            )}
+          </div>
+        </div>
+      </div>
+    `;
   }
 
   async _savePlan(e) {
@@ -1874,21 +2092,39 @@ class HaFinancePanel extends LitElement {
           </select>
         </div>
         <div class="date-range">
-          <input
-            type="date"
-            lang="${this._getDateInputLang()}"
-            placeholder="${this._getTranslation("start_date")}"
-            @change=${(e) => (this._filterDateStart = e.target.value)}
-            .value=${this._filterDateStart}
-          />
+          <div class="date-picker-wrapper">
+            <button type="button" class="date-picker-trigger"
+              @click=${(e) => { e.stopPropagation(); this._filterCalendarOpen = this._filterCalendarOpen === "start" ? "" : "start"; }}>
+              <span class="${!this._filterDateStart ? 'placeholder' : ''}">
+                ${this._filterDateStart ? this._formatDateForInput(this._filterDateStart) : this._getTranslation("start_date")}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
+            </button>
+            ${this._filterCalendarOpen === "start" ? this._renderFilterCalendar(
+              "start", this._filterCalendarViewMonth, this._filterCalendarViewYear,
+              (day) => this._filterCalendarSelectDay(day),
+              () => this._filterCalendarPrev(), () => this._filterCalendarNext(),
+              this._filterDateStart, this._filterDateEnd
+            ) : ""}
+            ${this._filterDateStart ? html`<button type="button" class="date-picker-clear" @click=${() => { this._filterDateStart = ""; }}>&times;</button>` : ""}
+          </div>
           <span class="date-separator">-</span>
-          <input
-            type="date"
-            lang="${this._getDateInputLang()}"
-            placeholder="${this._getTranslation("end_date")}"
-            @change=${(e) => (this._filterDateEnd = e.target.value)}
-            .value=${this._filterDateEnd}
-          />
+          <div class="date-picker-wrapper">
+            <button type="button" class="date-picker-trigger"
+              @click=${(e) => { e.stopPropagation(); this._filterCalendarOpen = this._filterCalendarOpen === "end" ? "" : "end"; }}>
+              <span class="${!this._filterDateEnd ? 'placeholder' : ''}">
+                ${this._filterDateEnd ? this._formatDateForInput(this._filterDateEnd) : this._getTranslation("end_date")}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
+            </button>
+            ${this._filterCalendarOpen === "end" ? this._renderFilterCalendar(
+              "end", this._filterCalendarViewMonth, this._filterCalendarViewYear,
+              (day) => this._filterCalendarSelectDay(day),
+              () => this._filterCalendarPrev(), () => this._filterCalendarNext(),
+              this._filterDateStart, this._filterDateEnd
+            ) : ""}
+            ${this._filterDateEnd ? html`<button type="button" class="date-picker-clear" @click=${() => { this._filterDateEnd = ""; }}>&times;</button>` : ""}
+          </div>
         </div>
       </div>
 
@@ -1989,21 +2225,39 @@ class HaFinancePanel extends LitElement {
     return html`
       <div class="filter-bar">
         <div class="date-range">
-          <input
-            type="date"
-            lang="${this._getDateInputLang()}"
-            placeholder="${this._getTranslation("start_date")}"
-            @change=${(e) => (this._allRecordsFilterDateStart = e.target.value)}
-            .value=${this._allRecordsFilterDateStart}
-          />
+          <div class="date-picker-wrapper">
+            <button type="button" class="date-picker-trigger"
+              @click=${(e) => { e.stopPropagation(); this._allRecordsCalendarOpen = this._allRecordsCalendarOpen === "start" ? "" : "start"; }}>
+              <span class="${!this._allRecordsFilterDateStart ? 'placeholder' : ''}">
+                ${this._allRecordsFilterDateStart ? this._formatDateForInput(this._allRecordsFilterDateStart) : this._getTranslation("start_date")}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
+            </button>
+            ${this._allRecordsCalendarOpen === "start" ? this._renderFilterCalendar(
+              "start", this._allRecordsCalendarViewMonth, this._allRecordsCalendarViewYear,
+              (day) => this._allRecordsCalendarSelectDay(day),
+              () => this._allRecordsCalendarPrev(), () => this._allRecordsCalendarNext(),
+              this._allRecordsFilterDateStart, this._allRecordsFilterDateEnd
+            ) : ""}
+            ${this._allRecordsFilterDateStart ? html`<button type="button" class="date-picker-clear" @click=${() => { this._allRecordsFilterDateStart = ""; }}>&times;</button>` : ""}
+          </div>
           <span class="date-separator">-</span>
-          <input
-            type="date"
-            lang="${this._getDateInputLang()}"
-            placeholder="${this._getTranslation("end_date")}"
-            @change=${(e) => (this._allRecordsFilterDateEnd = e.target.value)}
-            .value=${this._allRecordsFilterDateEnd}
-          />
+          <div class="date-picker-wrapper">
+            <button type="button" class="date-picker-trigger"
+              @click=${(e) => { e.stopPropagation(); this._allRecordsCalendarOpen = this._allRecordsCalendarOpen === "end" ? "" : "end"; }}>
+              <span class="${!this._allRecordsFilterDateEnd ? 'placeholder' : ''}">
+                ${this._allRecordsFilterDateEnd ? this._formatDateForInput(this._allRecordsFilterDateEnd) : this._getTranslation("end_date")}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3H18V1M17,12H12V17H17V12Z"/></svg>
+            </button>
+            ${this._allRecordsCalendarOpen === "end" ? this._renderFilterCalendar(
+              "end", this._allRecordsCalendarViewMonth, this._allRecordsCalendarViewYear,
+              (day) => this._allRecordsCalendarSelectDay(day),
+              () => this._allRecordsCalendarPrev(), () => this._allRecordsCalendarNext(),
+              this._allRecordsFilterDateStart, this._allRecordsFilterDateEnd
+            ) : ""}
+            ${this._allRecordsFilterDateEnd ? html`<button type="button" class="date-picker-clear" @click=${() => { this._allRecordsFilterDateEnd = ""; }}>&times;</button>` : ""}
+          </div>
         </div>
       </div>
       ${allRecords.length === 0
