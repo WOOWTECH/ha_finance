@@ -1294,6 +1294,7 @@ class HaFinancePanel extends LitElement {
         thu: "Thu",
         fri: "Fri",
         sat: "Sat",
+        adjustment_hint: "Positive to increase, negative to decrease",
       },
       "zh-Hant": {
         panel_title: "財務記錄",
@@ -1381,12 +1382,19 @@ class HaFinancePanel extends LitElement {
         thu: "四",
         fri: "五",
         sat: "六",
+        adjustment_hint: "正數為增加，負數為減少",
       },
     };
 
     const lang = this.hass?.language || "en";
     const langKey = lang.startsWith("zh") ? "zh-Hant" : "en";
     return translations[langKey]?.[key] || translations["en"][key] || key;
+  }
+
+  _getDateInputLang() {
+    const lang = this.hass?.language || "en";
+    if (lang.startsWith("zh")) return "zh-Hant";
+    return lang;
   }
 
   _formatCurrency(amount) {
@@ -1790,6 +1798,7 @@ class HaFinancePanel extends LitElement {
         <div class="date-range">
           <input
             type="date"
+            lang="${this._getDateInputLang()}"
             placeholder="${this._getTranslation("start_date")}"
             @change=${(e) => (this._filterDateStart = e.target.value)}
             .value=${this._filterDateStart}
@@ -1797,6 +1806,7 @@ class HaFinancePanel extends LitElement {
           <span class="date-separator">-</span>
           <input
             type="date"
+            lang="${this._getDateInputLang()}"
             placeholder="${this._getTranslation("end_date")}"
             @change=${(e) => (this._filterDateEnd = e.target.value)}
             .value=${this._filterDateEnd}
@@ -1903,6 +1913,7 @@ class HaFinancePanel extends LitElement {
         <div class="date-range">
           <input
             type="date"
+            lang="${this._getDateInputLang()}"
             placeholder="${this._getTranslation("start_date")}"
             @change=${(e) => (this._allRecordsFilterDateStart = e.target.value)}
             .value=${this._allRecordsFilterDateStart}
@@ -1910,6 +1921,7 @@ class HaFinancePanel extends LitElement {
           <span class="date-separator">-</span>
           <input
             type="date"
+            lang="${this._getDateInputLang()}"
             placeholder="${this._getTranslation("end_date")}"
             @change=${(e) => (this._allRecordsFilterDateEnd = e.target.value)}
             .value=${this._allRecordsFilterDateEnd}
@@ -2092,7 +2104,7 @@ class HaFinancePanel extends LitElement {
                 required
                 placeholder="+100 or -50"
               />
-              <small class="form-hint">正數為增加，負數為減少</small>
+              <small class="form-hint">${this._getTranslation("adjustment_hint")}</small>
             </div>
             <div class="form-group">
               <label>${this._getTranslation("adjustment_reason")}</label>

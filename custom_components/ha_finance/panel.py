@@ -8,6 +8,7 @@ import voluptuous as vol
 
 from homeassistant.components import frontend, websocket_api
 from homeassistant.components.http import StaticPathConfig
+from homeassistant.const import EVENT_CORE_CONFIG_UPDATE
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResultType
 
@@ -76,6 +77,28 @@ async def async_setup_panel(hass: HomeAssistant) -> None:
         },
         require_admin=False,
     )
+
+    # Re-register panel when language changes so sidebar title updates
+    @callback
+    def _handle_config_update(event):
+        """Re-register panel when core config (e.g. language) changes."""
+        frontend.async_register_built_in_panel(
+            hass,
+            component_name="custom",
+            sidebar_title=_get_panel_title(hass),
+            sidebar_icon=PANEL_ICON,
+            frontend_url_path="ha-finance",
+            config={
+                "_panel_custom": {
+                    "name": "ha-finance-panel",
+                    "module_url": f"{PANEL_URL}/ha-finance-panel.js?v={PANEL_VERSION}",
+                }
+            },
+            require_admin=False,
+            update=True,
+        )
+
+    hass.bus.async_listen(EVENT_CORE_CONFIG_UPDATE, _handle_config_update)
 
     # Register WebSocket commands
     websocket_api.async_register_command(hass, ws_get_accounts)
