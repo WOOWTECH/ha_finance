@@ -43,43 +43,6 @@ After setup, click **Configure** on the integration entry to:
 - Edit account settings
 - Delete the account
 
-## Entities
-
-Each account creates the following entities:
-
-| Platform | Entity | Description |
-|----------|--------|-------------|
-| `number` | Balance | Current account balance |
-| `number` | Quick Amount | Amount input for quick transactions |
-| `text` | Quick Note | Note input for quick transactions |
-| `button` | Confirm Record | Press to record the quick transaction |
-| `sensor` | Balance Display | Formatted balance sensor |
-| `sensor` | Last Transaction | Amount of the most recent transaction |
-| `sensor` | Last Note | Note of the most recent transaction |
-| `sensor` | Last Time | Timestamp of the most recent transaction |
-
-Each recurring plan adds:
-
-| Platform | Entity | Description |
-|----------|--------|-------------|
-| `number` | Amount | Plan amount (positive = income, negative = expense) |
-| `number` | Execution Day | Day of week/month/year the plan executes |
-| `select` | Frequency | Daily / Weekly / Monthly / Yearly |
-| `switch` | Active | Enable or disable the plan |
-| `sensor` | Next Date | Next scheduled execution date |
-| `sensor` | Last Executed | When the plan last ran |
-
-## Events
-
-Use these in automations:
-
-| Event | Description |
-|-------|-------------|
-| `ha_finance_transaction_added` | Fired when a manual transaction is recorded |
-| `ha_finance_recurring_executed` | Fired when a recurring plan executes |
-| `ha_finance_balance_adjusted` | Fired when balance is manually adjusted |
-| `ha_finance_low_balance` | Fired when balance drops below the configured threshold |
-
 ## Sidebar Panel
 
 After adding at least one account, a **Finance Record** panel appears in the HA sidebar. It provides:
@@ -88,7 +51,3 @@ After adding at least one account, a **Finance Record** panel appears in the HA 
 - Income/expense charts
 - Account overview and management
 - Quick transaction entry
-
-## License
-
-This project is provided as-is for personal use.

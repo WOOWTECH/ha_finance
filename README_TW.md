@@ -43,43 +43,6 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 - 編輯帳戶設定
 - 刪除帳戶
 
-## 實體
-
-每個帳戶會建立以下實體：
-
-| 平台 | 實體 | 說明 |
-|------|------|------|
-| `number` | 餘額（Balance） | 目前帳戶餘額 |
-| `number` | 快速金額（Quick Amount） | 快速記帳的金額輸入 |
-| `text` | 快速備註（Quick Note） | 快速記帳的備註輸入 |
-| `button` | 確認記錄（Confirm Record） | 按下以記錄快速交易 |
-| `sensor` | 餘額顯示（Balance Display） | 格式化的餘額感測器 |
-| `sensor` | 最近交易（Last Transaction） | 最近一筆交易的金額 |
-| `sensor` | 最近備註（Last Note） | 最近一筆交易的備註 |
-| `sensor` | 最近時間（Last Time） | 最近一筆交易的時間戳記 |
-
-每個定期計畫會新增：
-
-| 平台 | 實體 | 說明 |
-|------|------|------|
-| `number` | 金額（Amount） | 計畫金額（正數 = 收入，負數 = 支出） |
-| `number` | 執行日（Execution Day） | 每週/每月/每年的執行日 |
-| `select` | 頻率（Frequency） | 每日 / 每週 / 每月 / 每年 |
-| `switch` | 啟用（Active） | 啟用或停用計畫 |
-| `sensor` | 下次日期（Next Date） | 下次排程執行日期 |
-| `sensor` | 上次執行（Last Executed） | 計畫上次執行時間 |
-
-## 事件
-
-可在自動化中使用以下事件：
-
-| 事件 | 說明 |
-|------|------|
-| `ha_finance_transaction_added` | 手動記帳時觸發 |
-| `ha_finance_recurring_executed` | 定期計畫執行時觸發 |
-| `ha_finance_balance_adjusted` | 手動調整餘額時觸發 |
-| `ha_finance_low_balance` | 餘額低於設定門檻時觸發 |
-
 ## 側邊欄面板
 
 新增至少一個帳戶後，HA 側邊欄會出現 **財務紀錄** 面板，提供：
@@ -88,7 +51,3 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 - 收入/支出圖表
 - 帳戶總覽與管理
 - 快速記帳功能
-
-## 授權
-
-本專案以現狀提供，供個人使用。
