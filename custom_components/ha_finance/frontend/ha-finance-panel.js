@@ -46,6 +46,7 @@ const sharedStylesLit = `
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--app-header-text-color, #fff);
   }
   .top-bar-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
   .top-bar-action-btn {
@@ -1912,11 +1913,6 @@ class HaFinancePanel extends LitElement {
     }
   }
 
-  _toggleSidebar() {
-    // Dispatch event to toggle Home Assistant sidebar
-    this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true }));
-  }
-
   _toggleMoreMenu() {
     this._showMoreMenu = !this._showMoreMenu;
   }
@@ -1937,9 +1933,6 @@ class HaFinancePanel extends LitElement {
     return html`
       <!-- Top Bar -->
       <div class="top-bar">
-        <button class="top-bar-sidebar-btn" @click=${this._toggleSidebar} title="${getCommonTranslation('menu', this.hass?.language)}">
-          <svg viewBox="0 0 24 24"><path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/></svg>
-        </button>
         <h1 class="top-bar-title">${this._getTranslation("panel_title")}</h1>
       </div>
 
