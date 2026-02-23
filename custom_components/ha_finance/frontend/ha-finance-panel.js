@@ -621,9 +621,6 @@ class HaFinancePanel extends LitElement {
         gap: 8px;
       }
 
-      .add-button {
-        margin-top: 16px;
-      }
 
       .modal-overlay {
         position: fixed;
@@ -2121,7 +2118,6 @@ class HaFinancePanel extends LitElement {
         </div>
         <button
           class="btn btn-primary add-button"
-          style="margin-left: auto;"
           @click=${() => this._openTransactionForm()}
         >
           ${this._getTranslation("add_transaction")}
