@@ -10,8 +10,6 @@ A Home Assistant custom component for personal finance tracking. Manage multiple
 - **Quick Transaction Recording** — Enter amount + note and press "Confirm Record" to log income or expenses instantly.
 - **Recurring Plans** — Schedule automatic transactions (income or expense) on a daily, weekly, monthly, or yearly basis.
 - **Sidebar Panel** — A Lit Element–based dashboard in the HA sidebar with transaction history, charts, and account management tabs.
-- **Bilingual UI** — English and Traditional Chinese (zh-Hant), auto-detected from your HA language setting.
-- **Automation Events** — Fire events on transactions, recurring executions, balance adjustments, and low-balance alerts for use in HA automations.
 
 ## Installation
 
@@ -48,6 +46,5 @@ After setup, click **Configure** on the integration entry to:
 After adding at least one account, a **Finance Record** panel appears in the HA sidebar. It provides:
 
 - Transaction history with date filtering
-- Income/expense charts
 - Account overview and management
 - Quick transaction entry
