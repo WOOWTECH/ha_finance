@@ -10,6 +10,7 @@ from homeassistant.components import frontend, websocket_api
 from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from homeassistant.helpers import device_registry as dr
 
 from .const import (
     CONF_ACCOUNT_ID,
@@ -646,6 +647,23 @@ async def ws_update_account(
     coordinator = get_coordinator_for_account(hass, msg["account_id"])
     if coordinator:
         await coordinator.async_refresh()
+
+    # If name was changed, sync to config entry title and device registry
+    if "name" in msg:
+        for entry in hass.config_entries.async_entries(DOMAIN):
+            if entry.data.get(CONF_ACCOUNT_ID) == msg["account_id"]:
+                new_data = dict(entry.data)
+                new_data[CONF_ACCOUNT_NAME] = account.name
+                hass.config_entries.async_update_entry(
+                    entry, title=account.name, data=new_data
+                )
+                device_reg = dr.async_get(hass)
+                device = device_reg.async_get_device(
+                    identifiers={(DOMAIN, msg["account_id"])}
+                )
+                if device:
+                    device_reg.async_update_device(device.id, name=account.name)
+                break
 
     connection.send_result(msg["id"], {"success": True})
 
