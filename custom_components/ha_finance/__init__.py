@@ -7,6 +7,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.typing import ConfigType
 
 from .const import CONF_ACCOUNT_ID, CONF_ACCOUNT_NAME, CONF_INITIAL_BALANCE, DOMAIN
 from .coordinator import FinanceCoordinator
@@ -35,22 +36,27 @@ def _get_or_create_store(hass: HomeAssistant) -> FinanceStore:
     return domain_data[_STORE_KEY]
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Ha Finance from a config entry."""
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up Ha Finance domain — runs once before any config entries."""
     hass.data.setdefault(DOMAIN, {})
 
-    # Register panel only once (first account setup)
-    if not hass.data[DOMAIN].get(_PANEL_REGISTERED_KEY):
-        await async_setup_panel(hass)
-        hass.data[DOMAIN][_PANEL_REGISTERED_KEY] = True
+    # Register panel, WebSocket commands, and event listeners (once)
+    await async_setup_panel(hass)
+    hass.data[DOMAIN][_PANEL_REGISTERED_KEY] = True
 
-    # Register services only once (first account setup)
-    if not hass.data[DOMAIN].get(_SERVICES_REGISTERED_KEY):
-        await async_setup_services(hass)
-        hass.data[DOMAIN][_SERVICES_REGISTERED_KEY] = True
+    # Register services (once)
+    await async_setup_services(hass)
+    hass.data[DOMAIN][_SERVICES_REGISTERED_KEY] = True
 
-    # Create or retrieve the shared store
-    store = _get_or_create_store(hass)
+    # Initialize shared store
+    _get_or_create_store(hass)
+
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up Ha Finance from a config entry."""
+    store = hass.data[DOMAIN][_STORE_KEY]
 
     coordinator = FinanceCoordinator(hass, entry, store)
     await coordinator.async_setup()
@@ -98,7 +104,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Remove panel if no more config entries
     remaining_entries = [
         k for k in hass.data.get(DOMAIN, {}).keys()
-        if k not in (_PANEL_REGISTERED_KEY, _STORE_KEY)
+        if k not in (_PANEL_REGISTERED_KEY, _SERVICES_REGISTERED_KEY, _STORE_KEY)
     ]
     if not remaining_entries and hass.data[DOMAIN].get(_PANEL_REGISTERED_KEY):
         await async_remove_panel(hass)

@@ -76,6 +76,7 @@ async def async_setup_panel(hass: HomeAssistant) -> None:
             }
         },
         require_admin=False,
+        update=True,
     )
 
     # Re-register panel when language changes so sidebar title updates
