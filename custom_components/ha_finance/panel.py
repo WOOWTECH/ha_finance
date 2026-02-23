@@ -8,8 +8,7 @@ import voluptuous as vol
 
 from homeassistant.components import frontend, websocket_api
 from homeassistant.components.http import StaticPathConfig
-from homeassistant.const import EVENT_CORE_CONFIG_UPDATE
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
 from .const import (
@@ -35,16 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 PANEL_URL = "/ha_finance_panel"
 PANEL_ICON = "mdi:finance"
 PANEL_TITLE = "Finance Record"
-PANEL_TITLE_ZH = "財務紀錄"
-PANEL_VERSION = "3.1.0"  # Account management tab + date filters
-
-
-def _get_panel_title(hass: HomeAssistant) -> str:
-    """Get panel title based on HA language setting."""
-    language = hass.config.language or "en"
-    if language.startswith("zh"):
-        return PANEL_TITLE_ZH
-    return PANEL_TITLE
+PANEL_VERSION = "3.2.0"  # Frontend-driven sidebar title i18n
 
 
 async def async_setup_panel(hass: HomeAssistant) -> None:
@@ -66,7 +56,7 @@ async def async_setup_panel(hass: HomeAssistant) -> None:
     frontend.async_register_built_in_panel(
         hass,
         component_name="custom",
-        sidebar_title=_get_panel_title(hass),
+        sidebar_title=PANEL_TITLE,
         sidebar_icon=PANEL_ICON,
         frontend_url_path="ha-finance",
         config={
@@ -78,28 +68,6 @@ async def async_setup_panel(hass: HomeAssistant) -> None:
         require_admin=False,
         update=True,
     )
-
-    # Re-register panel when language changes so sidebar title updates
-    @callback
-    def _handle_config_update(event):
-        """Re-register panel when core config (e.g. language) changes."""
-        frontend.async_register_built_in_panel(
-            hass,
-            component_name="custom",
-            sidebar_title=_get_panel_title(hass),
-            sidebar_icon=PANEL_ICON,
-            frontend_url_path="ha-finance",
-            config={
-                "_panel_custom": {
-                    "name": "ha-finance-panel",
-                    "module_url": f"{PANEL_URL}/ha-finance-panel.js?v={PANEL_VERSION}",
-                }
-            },
-            require_admin=False,
-            update=True,
-        )
-
-    hass.bus.async_listen(EVENT_CORE_CONFIG_UPDATE, _handle_config_update)
 
     # Register WebSocket commands
     websocket_api.async_register_command(hass, ws_get_accounts)

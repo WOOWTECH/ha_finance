@@ -1130,11 +1130,89 @@ class HaFinancePanel extends LitElement {
     this._planFormFrequency = "monthly";
     this._calendarViewMonth = 1;
     this._calendarSelectedDay = 1;
+    this._prevLanguage = null;
   }
 
   connectedCallback() {
     super.connectedCallback();
     this._loadAccounts();
+    if (this.hass) {
+      const lang = this.hass.language || "en";
+      this._prevLanguage = lang;
+      HaFinancePanel._startSidebarPatcher(lang);
+    }
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    this._prevLanguage = null;
+  }
+
+  updated(changedProperties) {
+    if (changedProperties.has("hass") && this.hass) {
+      const newLang = this.hass.language || "en";
+      if (this._prevLanguage !== newLang) {
+        this._prevLanguage = newLang;
+        HaFinancePanel._patchSidebarTitle(newLang);
+      }
+    }
+  }
+
+  static _patchSidebarTitle(lang) {
+    const title = lang && lang.startsWith("zh") ? "\u8CA1\u52D9\u7D00\u9304" : "Finance Record";
+    window.__haFinanceLang = lang;
+    try {
+      const ha = document.querySelector("home-assistant");
+      if (!ha || !ha.shadowRoot) return;
+      const main = ha.shadowRoot.querySelector("home-assistant-main");
+      if (!main || !main.shadowRoot) return;
+      const sidebar = main.shadowRoot.querySelector("ha-sidebar");
+      if (!sidebar || !sidebar.shadowRoot) return;
+      const items = sidebar.shadowRoot.querySelectorAll("ha-md-list-item");
+      for (const item of items) {
+        const anchor = item.shadowRoot && item.shadowRoot.querySelector('a[href="/ha-finance"]');
+        if (anchor) {
+          const span = item.querySelector(".item-text");
+          if (span) {
+            // Find the actual text node (skip Lit comment markers)
+            for (let i = 0; i < span.childNodes.length; i++) {
+              if (span.childNodes[i].nodeType === 3) {
+                // Safely modify Lit's tracked text node via .data property
+                // instead of span.textContent which destroys the node reference
+                if (span.childNodes[i].data !== title) {
+                  span.childNodes[i].data = title;
+                }
+                break;
+              }
+            }
+          }
+          break;
+        }
+      }
+    } catch (e) {
+      // Silently fail if sidebar not rendered yet
+    }
+  }
+
+  static _startSidebarPatcher(lang) {
+    if (window.__haFinanceSidebarInterval) {
+      HaFinancePanel._patchSidebarTitle(lang);
+      return;
+    }
+    window.__haFinanceLang = lang;
+    // Use setInterval instead of MutationObserver to avoid interfering with Lit rendering
+    window.__haFinanceSidebarInterval = setInterval(() => {
+      try {
+        const haEl = document.querySelector("home-assistant");
+        if (haEl && haEl.hass && haEl.hass.language) {
+          window.__haFinanceLang = haEl.hass.language;
+        }
+      } catch (e) { /* ignore */ }
+      const currentLang = window.__haFinanceLang || "en";
+      HaFinancePanel._patchSidebarTitle(currentLang);
+    }, 2000);
+    // Initial patch
+    setTimeout(() => HaFinancePanel._patchSidebarTitle(lang), 200);
   }
 
   async _loadAccounts() {
