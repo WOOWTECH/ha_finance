@@ -19,7 +19,7 @@ A Home Assistant custom component for personal finance tracking. Manage multiple
 
 1. Open HACS in Home Assistant.
 2. Go to **Integrations** → three-dot menu → **Custom repositories**.
-3. Add `https://github.com/woowtech-ai-coder/ha_finance` as an **Integration**.
+3. Add `https://github.com/WOOWTECH/ha_finance` as an **Integration**.
 4. Search for "Finance Record" and install.
 5. Restart Home Assistant.
 

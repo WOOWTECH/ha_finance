@@ -19,7 +19,7 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 
 1. 在 Home Assistant 中開啟 HACS。
 2. 前往 **整合** → 右上角三點選單 → **自訂儲存庫**。
-3. 新增 `https://github.com/woowtech-ai-coder/ha_finance`，類型選擇 **Integration**。
+3. 新增 `https://github.com/WOOWTECH/ha_finance`，類型選擇 **Integration**。
 4. 搜尋「Finance Record」並安裝。
 5. 重新啟動 Home Assistant。
 
