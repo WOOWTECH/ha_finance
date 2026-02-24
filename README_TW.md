@@ -11,6 +11,8 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 - **定期計畫** — 設定每日、每週、每月或每年自動執行的收入/支出計畫。
 - **側邊欄面板** — 基於 Lit Element 的儀表板，位於 HA 側邊欄中，提供交易紀錄、圖表與帳戶管理功能。
 
+![儀表板](screenshots/zh/dashboard.png)
+
 ## 安裝方式
 
 ### HACS（手動新增儲存庫）
@@ -48,3 +50,9 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 - 交易紀錄與日期篩選
 - 帳戶總覽與管理
 - 快速記帳功能
+
+![交易記錄](screenshots/zh/transactions.png)
+
+![定期項目](screenshots/zh/recurring-plans.png)
+
+![帳戶管理](screenshots/zh/account-management.png)

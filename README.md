@@ -11,6 +11,8 @@ A Home Assistant custom component for personal finance tracking. Manage multiple
 - **Recurring Plans** — Schedule automatic transactions (income or expense) on a daily, weekly, monthly, or yearly basis.
 - **Sidebar Panel** — A Lit Element–based dashboard in the HA sidebar with transaction history, charts, and account management tabs.
 
+![Dashboard](screenshots/en/dashboard.png)
+
 ## Installation
 
 ### HACS (Manual Repository)
@@ -48,3 +50,9 @@ After adding at least one account, a **Finance Record** panel appears in the HA 
 - Transaction history with date filtering
 - Account overview and management
 - Quick transaction entry
+
+![Transactions](screenshots/en/transactions.png)
+
+![Recurring Plans](screenshots/en/recurring-plans.png)
+
+![Account Management](screenshots/en/account-management.png)
