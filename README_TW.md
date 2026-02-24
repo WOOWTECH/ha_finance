@@ -55,3 +55,23 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 
 - 帳戶總覽與管理
 ![帳戶管理](screenshots/zh/account-management.png)
+
+### 新增定期計畫
+
+前往 **定期項目** 分頁，點擊 **新增項目**。選擇頻率以排程自動交易：
+
+**每日** — 每天執行。僅需設定名稱與金額。
+
+![新增每日計畫](screenshots/zh/add-plan-daily.png)
+
+**每週** — 於每週指定的星期幾執行（星期一至星期日）。
+
+![新增每週計畫](screenshots/zh/add-plan-weekly.png)
+
+**每月** — 於每月指定日期執行（1–28 日）。
+
+![新增每月計畫](screenshots/zh/add-plan-monthly.png)
+
+**每年** — 於每年指定日期執行，透過日曆選擇。
+
+![新增每年計畫](screenshots/zh/add-plan-yearly.png)

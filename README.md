@@ -55,3 +55,23 @@ After adding at least one account, a **Finance Record** panel appears in the HA 
 
 - Account overview and management
 ![Account Management](screenshots/en/account-management.png)
+
+### Adding a Recurring Plan
+
+Navigate to the **Recurring Plans** tab and click **Add Plan**. Choose a frequency to schedule automatic transactions:
+
+**Daily** — Executes every day. Just set a title and amount.
+
+![Add Daily Plan](screenshots/en/add-plan-daily.png)
+
+**Weekly** — Executes on a specific day of the week (Monday–Sunday).
+
+![Add Weekly Plan](screenshots/en/add-plan-weekly.png)
+
+**Monthly** — Executes on a specific day of the month (1–28).
+
+![Add Monthly Plan](screenshots/en/add-plan-monthly.png)
+
+**Yearly** — Executes on a specific date each year, selected via calendar.
+
+![Add Yearly Plan](screenshots/en/add-plan-yearly.png)
