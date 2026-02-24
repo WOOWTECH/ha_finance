@@ -47,12 +47,11 @@ After setup, click **Configure** on the integration entry to:
 
 After adding at least one account, a **Finance Record** panel appears in the HA sidebar. It provides:
 
-- Transaction history with date filtering
-- Account overview and management
-- Quick transaction entry
-
+- Transaction history with date filtering and quick transaction entry
 ![Transactions](screenshots/en/transactions.png)
 
+- Recurring Plans
 ![Recurring Plans](screenshots/en/recurring-plans.png)
 
+- Account overview and management
 ![Account Management](screenshots/en/account-management.png)
