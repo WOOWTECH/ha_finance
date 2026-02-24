@@ -10,4 +10,4 @@ venv/
 .DS_Store
 .claude/
 user_prompt.md
-screenshots
+.playwright-mcp
