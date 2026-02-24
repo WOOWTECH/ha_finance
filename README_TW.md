@@ -47,13 +47,16 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 
 新增至少一個帳戶後，HA 側邊欄會出現 **財務紀錄** 面板，提供：
 
-- 交易紀錄與日期篩選和快速記帳功能
+交易紀錄與日期篩選和快速記帳功能
+
 ![交易記錄](screenshots/zh/transactions.png)
 
-- 定期交易
+定期交易
+
 ![定期交易](screenshots/zh/recurring-plans.png)
 
-- 帳戶總覽與管理
+帳戶總覽與管理
+
 ![帳戶管理](screenshots/zh/account-management.png)
 
 ### 新增定期計畫
