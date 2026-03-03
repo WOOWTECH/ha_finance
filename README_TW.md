@@ -9,6 +9,7 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 - **多帳戶管理** — 建立並管理多個財務帳戶，各自擁有獨立的餘額、交易紀錄與定期計畫。
 - **快速記帳** — 輸入金額與備註，按下「確認記錄」即可立即登記收入或支出。
 - **定期計畫** — 設定每日、每週、每月或每年自動執行的收入/支出計畫。
+- **CSV 匯出** — 將篩選後的交易記錄匯出為 CSV 檔案，方便在 Excel、Google Sheets 等工具中進行分析。
 - **側邊欄面板** — 基於 Lit Element 的儀表板，位於 HA 側邊欄中，提供交易紀錄、圖表與帳戶管理功能。
 
 ![儀表板](screenshots/zh/dashboard.png)
@@ -54,6 +55,10 @@ Home Assistant 自訂整合元件，用於個人財務追蹤。管理多個帳�
 定期交易
 
 ![定期交易](screenshots/zh/recurring-plans.png)
+
+匯出篩選後的交易記錄為 CSV 檔案，可用於 Excel、Google Sheets 等工具
+
+![匯出 CSV](screenshots/zh/export-csv.png)
 
 帳戶總覽與管理
 

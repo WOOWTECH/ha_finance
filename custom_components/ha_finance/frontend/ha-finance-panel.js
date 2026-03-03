@@ -1469,6 +1469,8 @@ class HaFinancePanel extends LitElement {
         fri: "Fri",
         sat: "Sat",
         adjustment_hint: "Positive to increase, negative to decrease",
+        export_csv: "Export CSV",
+        export_csv_no_data: "No transactions to export",
       },
       "zh-Hant": {
         panel_title: "財務記錄",
@@ -1557,6 +1559,8 @@ class HaFinancePanel extends LitElement {
         fri: "五",
         sat: "六",
         adjustment_hint: "正數為增加，負數為減少",
+        export_csv: "匯出 CSV",
+        export_csv_no_data: "沒有可匯出的交易",
       },
     };
 
@@ -1626,6 +1630,49 @@ class HaFinancePanel extends LitElement {
   _closeTransactionForm() {
     this._showTransactionForm = false;
     this._editingTransaction = null;
+  }
+
+  _exportTransactionsCSV() {
+    const transactions = this._getFilteredTransactions();
+    if (transactions.length === 0) {
+      alert(this._getTranslation("export_csv_no_data"));
+      return;
+    }
+
+    const escapeCSV = (val) => {
+      const str = String(val ?? "");
+      if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    };
+
+    const headers = [
+      this._getTranslation("date"),
+      this._getTranslation("amount"),
+      this._getTranslation("note"),
+      this._getTranslation("type"),
+    ];
+
+    const rows = transactions.map((tx) => [
+      escapeCSV(tx.timestamp),
+      escapeCSV(tx.amount),
+      escapeCSV(tx.note || ""),
+      escapeCSV(this._getTranslation(tx.type === "expense" ? "expenses" : tx.type)),
+    ].join(","));
+
+    const csv = "\uFEFF" + headers.map(escapeCSV).join(",") + "\n" + rows.join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const accountName = this._selectedAccount?.name || "account";
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `ha_finance_${accountName}_${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   async _saveTransaction(e) {
@@ -2116,6 +2163,9 @@ class HaFinancePanel extends LitElement {
             ${this._filterDateEnd ? html`<button type="button" class="date-picker-clear" @click=${() => { this._filterDateEnd = ""; }}>&times;</button>` : ""}
           </div>
         </div>
+        <button class="btn btn-secondary" @click=${() => this._exportTransactionsCSV()}>
+          ${this._getTranslation("export_csv")}
+        </button>
         <button
           class="btn btn-primary add-button"
           @click=${() => this._openTransactionForm()}

@@ -9,6 +9,7 @@ A Home Assistant custom component for personal finance tracking. Manage multiple
 - **Multi-Account Management** — Create and manage multiple financial accounts, each with its own balance, transactions, and recurring plans.
 - **Quick Transaction Recording** — Enter amount + note and press "Confirm Record" to log income or expenses instantly.
 - **Recurring Plans** — Schedule automatic transactions (income or expense) on a daily, weekly, monthly, or yearly basis.
+- **CSV Export** — Export filtered transactions as a CSV file for analysis in Excel, Google Sheets, or other tools.
 - **Sidebar Panel** — A Lit Element–based dashboard in the HA sidebar with transaction history, charts, and account management tabs.
 
 ![Dashboard](screenshots/en/dashboard.png)
@@ -54,6 +55,10 @@ Transaction history with date filtering and quick transaction entry
 Recurring Plans
 
 ![Recurring Plans](screenshots/en/recurring-plans.png)
+
+CSV export of filtered transactions for use in Excel, Google Sheets, etc.
+
+![Export CSV](screenshots/en/export-csv.png)
 
 Account overview and management
 
